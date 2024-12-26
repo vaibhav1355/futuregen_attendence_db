@@ -107,7 +107,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
                 Flexible(
                   child: Text(
                     item['time'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.grey,
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
@@ -137,12 +137,12 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xffefcd1a),
+              backgroundColor: Color(0xffefcd1a),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(32.0),
               ),
-              padding: const EdgeInsets.all(12),
-              minimumSize: const Size(110, 38),
+              padding: EdgeInsets.all(12),
+              minimumSize: Size(110, 38),
             ),
             child: Text(
               'Journal',

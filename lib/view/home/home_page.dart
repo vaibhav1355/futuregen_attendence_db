@@ -363,8 +363,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _navigateToJournalScreen(BuildContext context, int index, String category, String initialJournalText) async {
-    final DateTime selectedDateTime = selectedDate;
-
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -375,25 +373,49 @@ class _HomePageState extends State<HomePage> {
           isPastContract: !isPastContract,
           onJournalUpdate: (updatedText) {
             setState(() {
+              bool isDateFound = false;
+
               for (var dateRange in updatedData) {
                 final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
                 final DateTime endDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
 
-                if (startDateTime.isBefore(selectedDateTime) || startDateTime.isAtSameMomentAs(selectedDateTime)) {
-                  if (endDateTime.isAfter(selectedDateTime) || endDateTime.isAtSameMomentAs(selectedDateTime)) {
-                    for (var entry in dateRange['entries']) {
-                      if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDateTime)) {
-                        for (var categoryObj in entry['categorylist']) {
-                          if (categoryObj['category'] == category) {
-                            categoryObj['journals'] = updatedText;
-                            // i want updatedText
-                            break;
-                          }
+                if ((startDateTime.isBefore(selectedDate) ||
+                    startDateTime.isAtSameMomentAs(selectedDate)) &&
+                    (endDateTime.isAfter(selectedDate) ||
+                        endDateTime.isAtSameMomentAs(selectedDate))) {
+                  for (var entry in dateRange['entries']) {
+                    if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDate)) {
+                      isDateFound = true;
+
+                      for (var categoryObj in entry['categorylist']) {
+                        if (categoryObj['category'] == category) {
+                          categoryObj['journals'] = updatedText;
+
+                          final repository = ContractTransactionRepository();
+                          repository.addCategoryTransaction(
+                            transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
+                            categoryId: category,
+                            journal: updatedText,
+                            isLocked: isLocked ? 'true' : 'false',
+                          );
+                          break;
                         }
                       }
+                      break;
                     }
                   }
                 }
+              }
+
+              // If the selectedDate was not found, insert a new journal entry
+              if (!isDateFound) {
+                final repository = ContractTransactionRepository();
+                repository.addCategoryTransaction(
+                  transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
+                  categoryId: category,
+                  journal: updatedText,
+                  isLocked: isLocked ? 'true' : 'false',
+                );
               }
             });
           },
@@ -401,6 +423,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
 
   void _showCategoryBottomSheet(BuildContext context) {
     var selectedDateData = _getSelectedDateData();
@@ -531,4 +554,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-

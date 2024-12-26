@@ -25,6 +25,7 @@ class ContractTransactionRepository {
       DatabaseHelper.syncStatus: 0,
       DatabaseHelper.deviceId: 'YourDeviceID',
     });
+    ConflictAlgorithm.replace;
   }
 
   Future<List<Map<String, dynamic>>> fetchCategories() async {

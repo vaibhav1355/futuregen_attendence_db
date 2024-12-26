@@ -22,7 +22,7 @@ class DatabaseHelper {
   static const transactionId = 'id';
   static const empId = 'empid';
   static const transactionDate = 'transaction_date';
-  static const categoryId = 'category_id';
+  static const categoryId= 'categoryId';
   static const hours = 'hours';
   static const journal = 'journal';
   static const dateSubmitted = 'datesubmitted';
@@ -41,7 +41,6 @@ class DatabaseHelper {
   Future<void> init() async {
     db = await database;
   }
-
 
   Future<Database> initDatabase() async {
     final documentsDirectory = await getApplicationDocumentsDirectory();
@@ -73,7 +72,7 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE $category(
       $id INTEGER PRIMARY KEY AUTOINCREMENT,
-      $categoryName TEXT,
+      $categoryName TEXT, // 
       $active INTEGER,
       $appPinCategory TEXT
     )
@@ -83,10 +82,10 @@ class DatabaseHelper {
     print("Creating ContractTransaction Table...");
     await db.execute('''
     CREATE TABLE $contractTransaction(
-      $transactionId INTEGER PRIMARY KEY AUTOINCREMENT,
+      $transactionId INTEGER AUTOINCREMENT,
       $empId INTEGER,
-      $transactionDate TEXT,
-      $categoryId INTEGER,
+      $transactionDate TEXT PRIMARY KEY,
+      $categoryId TEXT,
       $hours TEXT,
       $journal TEXT,
       $dateSubmitted TEXT,
@@ -101,26 +100,6 @@ class DatabaseHelper {
     print("ContractTransaction Table Created.");
   }
 
-  // Future<void> insertTransactionData() async {
-  //   final dbClient = await database;
-  //
-  //   print("Inserting data into ContractTransaction Table...");
-  //   await dbClient.insert(contractTransaction, {
-  //     empId: 101,
-  //     transactionDate: '2024-12-21',
-  //     categoryId: 1,
-  //     hours: '8',
-  //     journal: 'Worked on project X',
-  //     dateSubmitted: '2024-12-21',
-  //     submittedBy: 1,
-  //     isLock: 0,
-  //     finalSubmit: '2024-12-21',
-  //     contractId: 5001,
-  //     syncStatus: 1,
-  //     deviceId: 'Device001',
-  //   });
-  //   print("Data inserted into ContractTransaction Table.");
-  // }
 
   Future<void> printCategoryTable() async {
     final dbClient = await database;
@@ -136,5 +115,4 @@ class DatabaseHelper {
     contractData.forEach((row) => print(row));
   }
 }
-
 
