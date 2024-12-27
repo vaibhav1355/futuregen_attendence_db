@@ -103,6 +103,9 @@ class _HomePageState extends State<HomePage> {
   int leftMinutes = 0;
   double leftDays= 0.0;
 
+  int currentDayTotalHours = 0 ;
+  int currentDayTotalMinutes = 0 ;
+
   bool contractExist = false ;
   bool isPastContract = false;
   bool isLocked = false;
@@ -170,7 +173,36 @@ class _HomePageState extends State<HomePage> {
             leftMinutes = range['leftMinutes'];
             leftDays = range['leftDays'];
           });
+          for (var entry in range['entries']) {
+            DateTime entryDate = DateFormat('dd-MM-yyyy').parse(entry['selectedDate']);
 
+            if (selectedDate.isAtSameMomentAs(entryDate)) {
+              int currentDayMinutes = 0;
+
+              for (var item in entry['categorylist']) {
+                final timeParts = item['time'].split(':');
+                if (timeParts.length == 2) {
+                  currentDayMinutes += (int.tryParse(timeParts[0]) ?? 0) * 60;
+                  currentDayMinutes += int.tryParse(timeParts[1]) ?? 0;
+                }
+              }
+
+              int currentDayHours = currentDayMinutes ~/ 60;
+              int currentDayLeftMinutes = currentDayMinutes % 60;
+              String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+
+              String val = currentDayHours.toString() + "." + currentDayLeftMinutes.toString();
+
+              setState(() {
+                final Repository = ContractTransactionRepository();
+                Repository.addCategoryTransaction(
+                  transactionDate: formattedDate,
+                  hours: val,
+                );
+              });
+              break;
+            }
+          }
           break;
         }
       }
@@ -223,7 +255,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+    Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
@@ -241,6 +273,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _selectTime(BuildContext context, int index) async {
+
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: 00, minute: 00),
@@ -281,6 +314,7 @@ class _HomePageState extends State<HomePage> {
             }
           }
         }
+
         updateTotalDaysAndHours();
       });
     }
@@ -406,8 +440,6 @@ class _HomePageState extends State<HomePage> {
                   }
                 }
               }
-
-              // If the selectedDate was not found, insert a new journal entry
               if (!isDateFound) {
                 final repository = ContractTransactionRepository();
                 repository.addCategoryTransaction(
@@ -424,13 +456,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   void _showCategoryBottomSheet(BuildContext context) {
     var selectedDateData = _getSelectedDateData();
 
     CategoryBottomSheet.showCategoryBottomSheet(
       context: context,
       selectedDateData: selectedDateData,
+      selectedDate: selectedDate,
       onCategoryAdded: () {
         setState(() {});
       },
@@ -538,6 +570,13 @@ class _HomePageState extends State<HomePage> {
                             setState(() {
                               entry['isLocked'] = true;
                               isLocked = true;
+                              final repository = ContractTransactionRepository();
+                              repository.addCategoryTransaction(
+                                journal: '',
+                                categoryId: '',
+                                transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
+                                isLocked: isLocked ? 'true' : 'false',
+                              );
                             });
                           }
                         }

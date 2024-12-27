@@ -73,7 +73,6 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
     );
   }
 
-
   Widget _buildCategoryItem(BuildContext context, Map<String, dynamic> item, int index, bool isLocked) {
     return Column(
       children: [

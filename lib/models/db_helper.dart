@@ -72,7 +72,7 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE $category(
       $id INTEGER PRIMARY KEY AUTOINCREMENT,
-      $categoryName TEXT, // 
+      $categoryName TEXT, 
       $active INTEGER,
       $appPinCategory TEXT
     )
@@ -86,20 +86,19 @@ class DatabaseHelper {
       $empId INTEGER,
       $transactionDate TEXT PRIMARY KEY,
       $categoryId TEXT,
-      $hours TEXT,
+      $hours STRING,
       $journal TEXT,
       $dateSubmitted TEXT,
       $submittedBy INTEGER,
       $isLock TEXT,
       $finalSubmit TEXT, 
       $contractId INTEGER,
-      $syncStatus INTEGER,
+      $syncStatus INTEGER, 
       $deviceId TEXT
     )
   ''');
     print("ContractTransaction Table Created.");
   }
-
 
   Future<void> printCategoryTable() async {
     final dbClient = await database;
@@ -114,5 +113,17 @@ class DatabaseHelper {
     print("Contract Transaction Table Data:");
     contractData.forEach((row) => print(row));
   }
+
+  Future<void> deleteAllData() async {
+    final dbClient = await database;
+
+    await dbClient.delete(category);
+    print("All data from Category table deleted.");
+
+    await dbClient.delete(contractTransaction);
+    print("All data from ContractTransaction table deleted.");
+  }
+
 }
+
 

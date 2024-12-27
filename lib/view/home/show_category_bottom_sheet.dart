@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../models/category_repository.dart';
+import '../../models/contract_transaction_repository.dart';
 
 class CategoryBottomSheet {
 
@@ -22,6 +22,7 @@ class CategoryBottomSheet {
     required BuildContext context,
     required Map<String, dynamic> selectedDateData,
     required VoidCallback onCategoryAdded,
+    required selectedDate,
 
   }) {
     Map<String, bool> checkboxStates = {};
@@ -62,29 +63,25 @@ class CategoryBottomSheet {
                         ),
                         InkWell(
                           onTap: () {
-                            final categoryRepository = CategoryRepository();
-
+                            final repository = ContractTransactionRepository();
                             categories.forEach((category) async {
                               if (checkboxStates[category] == true) {
                                 bool isAlreadySelected = selectedDateData['categorylist']
                                     .any((item) => item['category'] == category);
-
-                                // Corrected line to pass the correct selectedDateData
-                                await categoryRepository.addCategory(categoryName: category,);
-
                                 if (!isAlreadySelected) {
                                   selectedDateData['categorylist'].add({
                                     'category': category,
                                     'time': '00:00',
                                     'journals': '',
                                   });
-
-                                  // Corrected line again
-                                  await categoryRepository.addCategory(categoryName: category,);
+                                  String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                                  repository.addCategoryTransaction(
+                                    categoryId: category,
+                                    transactionDate: formattedDate,
+                                  );
                                 }
                               }
                             });
-
                             onCategoryAdded();
                             Navigator.pop(context);
                           },
