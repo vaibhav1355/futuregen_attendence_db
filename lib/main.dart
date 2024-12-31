@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:futurgen_attendance/view/home/home_page.dart';
-import 'package:futurgen_attendance/view/home/home_page_2.dart';
 
 import 'models/db_helper.dart';
 

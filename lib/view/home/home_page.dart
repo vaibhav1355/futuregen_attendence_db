@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:futurgen_attendance/view/drawer/app_drawer.dart';
 import 'package:futurgen_attendance/view/home/display_bottom_date_and_hour.dart';
@@ -21,6 +22,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  static const Map<String, int> categoryWithIds = {
+    'Admin-General': 1,
+    'Academic-General': 2,
+    'Fundraising-General': 3,
+    'Marketing-General': 4,
+    'Operations-General': 5,
+    'Finance-General': 6,
+    'HR-General': 7,
+    'Research-General': 8,
+    'Event Management-General': 9,
+    'Customer Service-General': 10,
+  };
 
   final List<Map<String, dynamic>> updatedData = [
     {
@@ -66,7 +80,7 @@ class _HomePageState extends State<HomePage> {
       "pastContract": false,
       "entries": [
         {
-          "selectedDate": "26-12-2024",
+          "selectedDate": "31-12-2024",
           "isLocked": false,
           "categorylist": [
             {'category': 'Admin-General', 'time': '02:25', 'journals': ''},
@@ -76,7 +90,7 @@ class _HomePageState extends State<HomePage> {
           ],
         },
         {
-          "selectedDate": "25-12-2024",
+          "selectedDate": "30-12-2024",
           "isLocked": false,
           "categorylist": [
             {'category': 'Admin-General', 'time': '01:15', 'journals': ''},
@@ -100,7 +114,7 @@ class _HomePageState extends State<HomePage> {
   int totalHours = 0 ;
   int totalDays = 0 ;
   int leftHours = 0 ;
-  int leftMinutes = 0;
+  int leftMinutes = 0 ;
   double leftDays= 0.0;
 
   int currentDayTotalHours = 0 ;
@@ -145,7 +159,7 @@ class _HomePageState extends State<HomePage> {
         int rangeDays = _daysBetween(rangeStartDate, rangeEndDate) + 1;
 
         int rangeTotalMinutes = rangeDays * 8 * 60;
-        int remainingMinutes = rangeTotalMinutes - ( (totalUsedHours * 60)+ totalUsedMinutes);
+        int remainingMinutes = rangeTotalMinutes - ((totalUsedHours * 60)+ totalUsedMinutes);
 
         double remainingHours = remainingMinutes / 60.0;
 
@@ -156,8 +170,10 @@ class _HomePageState extends State<HomePage> {
           range['leftMinutes'] = remainingMinutes % 60;
           range['leftDays'] = double.parse((remainingHours / 8.0).toStringAsFixed(2));
         });
+
       }
       bool dateInRange = false;
+
       for (var range in updatedData) {
         DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
         DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
@@ -173,37 +189,6 @@ class _HomePageState extends State<HomePage> {
             leftMinutes = range['leftMinutes'];
             leftDays = range['leftDays'];
           });
-          for (var entry in range['entries']) {
-            DateTime entryDate = DateFormat('dd-MM-yyyy').parse(entry['selectedDate']);
-
-            if (selectedDate.isAtSameMomentAs(entryDate)) {
-              int currentDayMinutes = 0;
-
-              for (var item in entry['categorylist']) {
-                final timeParts = item['time'].split(':');
-                if (timeParts.length == 2) {
-                  currentDayMinutes += (int.tryParse(timeParts[0]) ?? 0) * 60;
-                  currentDayMinutes += int.tryParse(timeParts[1]) ?? 0;
-                }
-              }
-
-              int currentDayHours = currentDayMinutes ~/ 60;
-              int currentDayLeftMinutes = currentDayMinutes % 60;
-              String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-
-              String val = currentDayHours.toString() + "." + currentDayLeftMinutes.toString();
-
-              setState(() {
-                final Repository = ContractTransactionRepository();
-                Repository.addCategoryTransaction(
-                  transactionDate: formattedDate,
-                  hours: val,
-                );
-              });
-              break;
-            }
-          }
-          break;
         }
       }
       if (!dateInRange) {
@@ -255,7 +240,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-    Future<void> _selectDate(BuildContext context) async {
+  Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
@@ -273,48 +258,63 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _selectTime(BuildContext context, int index) async {
-
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: 00, minute: 00),
+      initialTime: TimeOfDay(hour: 0, minute: 0),
       initialEntryMode: TimePickerEntryMode.dial,
     );
 
     if (picked != null) {
       setState(() {
-        int hour = picked.hour;
-        if (hour == 0) {
-          hour = 12;
-        }
+        // Format the picked time and selected date
+        final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+        final String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
 
-        final newTime = DateTime(
-          selectedDate.year,
-          selectedDate.month,
-          selectedDate.day,
-          hour,
-          picked.minute,
-        );
-
-        String formattedTime = DateFormat('HH:mm').format(newTime);
-        String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-
+        // Iterate through the updatedData ranges
         for (var range in updatedData) {
-          DateTime rangeStartdate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
+          DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
           DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
 
-          if ((selectedDate.isAfter(rangeStartdate) && selectedDate.isBefore(rangeEndDate)) ||
-              selectedDate.isAtSameMomentAs(rangeStartdate) ||
+          // Check if the selected date falls within the current range
+          if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
+              selectedDate.isAtSameMomentAs(rangeStartDate) ||
               selectedDate.isAtSameMomentAs(rangeEndDate)) {
-
             for (var entry in range['entries']) {
+              // Check if the entry matches the selected date
               if (entry['selectedDate'] == formattedDate) {
-                entry['categorylist'][index]['time'] = formattedTime;
-                break;
+                final categoryList = entry['categorylist'];
+                if (index < categoryList.length) {
+                  // Update the time for the specific category
+                  categoryList[index]['time'] = formattedTime;
+
+                  // Fetch the category name and corresponding ID
+                  final String category = categoryList[index]['category'];
+                  final int? categoryId = categoryWithIds[category];
+
+                  // Add the category transaction to the repository
+                  if (categoryId != null) {
+                    try {
+                      final repository = ContractTransactionRepository();
+                      repository.addCategoryTransaction(
+                        transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
+                        hours: formattedTime,
+                        categoryId: categoryId,
+                        journal: categoryList[index]['journals'] ?? '',
+                        isLocked: entry['isLocked'].toString(),
+                      );
+                    } catch (e) {
+                      print('Error adding transaction: $e');
+                    }
+                  } else {
+                    print('Error: Invalid category ID for $category');
+                  }
+                  break;
+                }
               }
             }
           }
         }
-
+        // Recalculate totals
         updateTotalDaysAndHours();
       });
     }
@@ -408,7 +408,6 @@ class _HomePageState extends State<HomePage> {
           onJournalUpdate: (updatedText) {
             setState(() {
               bool isDateFound = false;
-
               for (var dateRange in updatedData) {
                 final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
                 final DateTime endDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
@@ -424,13 +423,13 @@ class _HomePageState extends State<HomePage> {
                       for (var categoryObj in entry['categorylist']) {
                         if (categoryObj['category'] == category) {
                           categoryObj['journals'] = updatedText;
-
                           final repository = ContractTransactionRepository();
                           repository.addCategoryTransaction(
                             transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
-                            categoryId: category,
+                            hours: entry['categorylist'][index]['time'],
+                            categoryId: categoryWithIds[category] ?? 0,
                             journal: updatedText,
-                            isLocked: isLocked ? 'true' : 'false',
+                            isLocked: 'false',
                           );
                           break;
                         }
@@ -444,7 +443,7 @@ class _HomePageState extends State<HomePage> {
                 final repository = ContractTransactionRepository();
                 repository.addCategoryTransaction(
                   transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
-                  categoryId: category,
+                  categoryId: categoryWithIds[category] ?? 0,
                   journal: updatedText,
                   isLocked: isLocked ? 'true' : 'false',
                 );
@@ -504,7 +503,6 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       if (selectedDate.isAfter(minStartDate!)) {
                         selectedDate = selectedDate.subtract(Duration(days: 1));
-                        print('After Subtraction: $selectedDate');
                         _ensureDateExists();
                         updateTotalDaysAndHours();
                         _pastContract();
@@ -550,7 +548,7 @@ class _HomePageState extends State<HomePage> {
               navigateToJournalScreen: _navigateToJournalScreen,
               isPastContract: isPastContract,
             ),
-            if(isPastContract)LockAndSaving(
+            if(isPastContract) LockAndSaving(
               selectedDateData: _getSelectedDateData(),
               onSave: () {
                 String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
@@ -571,12 +569,14 @@ class _HomePageState extends State<HomePage> {
                               entry['isLocked'] = true;
                               isLocked = true;
                               final repository = ContractTransactionRepository();
+
                               repository.addCategoryTransaction(
                                 journal: '',
-                                categoryId: '',
+                                categoryId: categoryWithIds['category'] ?? 0,
                                 transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
                                 isLocked: isLocked ? 'true' : 'false',
                               );
+
                             });
                           }
                         }

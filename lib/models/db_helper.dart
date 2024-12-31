@@ -85,7 +85,7 @@ class DatabaseHelper {
       $transactionId INTEGER AUTOINCREMENT,
       $empId INTEGER,
       $transactionDate TEXT PRIMARY KEY,
-      $categoryId TEXT,
+      $categoryId INTEGER,
       $hours STRING,
       $journal TEXT,
       $dateSubmitted TEXT,

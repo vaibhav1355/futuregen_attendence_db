@@ -18,6 +18,19 @@ class CategoryBottomSheet {
     'Customer Service-General',
   ];
 
+  static const Map<String, int> categoryWithIds = {
+    'Admin-General': 1,
+    'Academic-General': 2,
+    'Fundraising-General': 3,
+    'Marketing-General': 4,
+    'Operations-General': 5,
+    'Finance-General': 6,
+    'HR-General': 7,
+    'Research-General': 8,
+    'Event Management-General': 9,
+    'Customer Service-General': 10,
+  };
+
   static void showCategoryBottomSheet({
     required BuildContext context,
     required Map<String, dynamic> selectedDateData,
@@ -63,7 +76,6 @@ class CategoryBottomSheet {
                         ),
                         InkWell(
                           onTap: () {
-                            final repository = ContractTransactionRepository();
                             categories.forEach((category) async {
                               if (checkboxStates[category] == true) {
                                 bool isAlreadySelected = selectedDateData['categorylist']
@@ -75,13 +87,18 @@ class CategoryBottomSheet {
                                     'journals': '',
                                   });
                                   String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                                  final repository = new ContractTransactionRepository();
                                   repository.addCategoryTransaction(
-                                    categoryId: category,
+                                    categoryId: categoryWithIds[category] ?? 0,
                                     transactionDate: formattedDate,
+                                    hours: '00:00',
+                                    isLocked: 'false',
+                                    journal: '',
                                   );
                                 }
                               }
                             });
+
                             onCategoryAdded();
                             Navigator.pop(context);
                           },
