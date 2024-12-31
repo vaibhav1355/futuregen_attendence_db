@@ -7,9 +7,7 @@ import 'package:futurgen_attendance/view/home/show_category_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 
 import '../../Constants/constants.dart';
-
 import '../../models/contract_transaction_repository.dart';
-import '../../models/db_helper.dart';
 import 'display_category_list.dart';
 import 'locking_and_saving.dart';
 import 'no_contract_page.dart';
@@ -200,7 +198,6 @@ class _HomePageState extends State<HomePage> {
           leftDays = 0.0;
         });
 
-        print('No matching range found for selectedDate $selectedDate');
       }
     } catch (e) {
       print('Error in updateTotalDaysAndHours: $e');
@@ -266,37 +263,30 @@ class _HomePageState extends State<HomePage> {
 
     if (picked != null) {
       setState(() {
-        // Format the picked time and selected date
         final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
         final String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
 
-        // Iterate through the updatedData ranges
         for (var range in updatedData) {
           DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
           DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
 
-          // Check if the selected date falls within the current range
           if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
               selectedDate.isAtSameMomentAs(rangeStartDate) ||
               selectedDate.isAtSameMomentAs(rangeEndDate)) {
             for (var entry in range['entries']) {
-              // Check if the entry matches the selected date
               if (entry['selectedDate'] == formattedDate) {
                 final categoryList = entry['categorylist'];
                 if (index < categoryList.length) {
-                  // Update the time for the specific category
                   categoryList[index]['time'] = formattedTime;
 
-                  // Fetch the category name and corresponding ID
                   final String category = categoryList[index]['category'];
                   final int? categoryId = categoryWithIds[category];
 
-                  // Add the category transaction to the repository
                   if (categoryId != null) {
                     try {
                       final repository = ContractTransactionRepository();
                       repository.addCategoryTransaction(
-                        transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
+                        transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
                         hours: formattedTime,
                         categoryId: categoryId,
                         journal: categoryList[index]['journals'] ?? '',
@@ -314,30 +304,32 @@ class _HomePageState extends State<HomePage> {
             }
           }
         }
-        // Recalculate totals
         updateTotalDaysAndHours();
       });
     }
   }
 
   void _ensureDateExists() {
+    const dateFormat = 'dd-MM-yyyy';
     bool dateExists = true;
+
     for (var range in updatedData) {
-      DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
-      DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
+      DateTime rangeStartDate = DateFormat(dateFormat).parse(range['startDate']);
+      DateTime rangeEndDate = DateFormat(dateFormat).parse(range['endDate']);
 
       if (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate) ||
           selectedDate.isAtSameMomentAs(rangeStartDate) || selectedDate.isAtSameMomentAs(rangeEndDate)) {
+
         if (range['entries'] is! List) {
           range['entries'] = [];
         }
 
         bool dataExists = range['entries'].any((entry) =>
-        entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDate));
+        entry['selectedDate'] == DateFormat(dateFormat).format(selectedDate));
 
         if (!dataExists) {
           range['entries'].add({
-            'selectedDate': DateFormat('dd-MM-yyyy').format(selectedDate),
+            'selectedDate': DateFormat(dateFormat).format(selectedDate),
             'isLocked': false,
             'categorylist': [
               {'category': 'Admin-General', 'time': '0:00', 'journals': ''},
@@ -374,6 +366,32 @@ class _HomePageState extends State<HomePage> {
           'endDate': formattedDate,
           'entries': [],
         });
+        try {
+          final repository = ContractTransactionRepository();
+          repository.addCategoryTransaction(
+            transactionDate: formattedDate,
+            categoryId: categoryWithIds['Admin-General'],
+            hours: '00:00',
+            isLocked: 'false',
+            journal: '',
+          );
+          repository.addCategoryTransaction(
+            transactionDate: formattedDate,
+            categoryId: categoryWithIds['Academic-General'],
+            hours: '00:00',
+            isLocked: 'false',
+            journal: '',
+          );
+          repository.addCategoryTransaction(
+            transactionDate: formattedDate,
+            categoryId: categoryWithIds['Fundraising-General'],
+            hours: '00:00',
+            isLocked: 'false',
+            journal: '',
+          );
+        } catch (e) {
+          print('Error adding category transaction: $e');
+        }
         return updatedData.last;
       },
     );
@@ -425,7 +443,7 @@ class _HomePageState extends State<HomePage> {
                           categoryObj['journals'] = updatedText;
                           final repository = ContractTransactionRepository();
                           repository.addCategoryTransaction(
-                            transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
+                            transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
                             hours: entry['categorylist'][index]['time'],
                             categoryId: categoryWithIds[category] ?? 0,
                             journal: updatedText,
@@ -442,7 +460,7 @@ class _HomePageState extends State<HomePage> {
               if (!isDateFound) {
                 final repository = ContractTransactionRepository();
                 repository.addCategoryTransaction(
-                  transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
+                  transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
                   categoryId: categoryWithIds[category] ?? 0,
                   journal: updatedText,
                   isLocked: isLocked ? 'true' : 'false',
@@ -556,6 +574,7 @@ class _HomePageState extends State<HomePage> {
               },
               onLock: () {
                 final DateTime selectedDateTime = selectedDate;
+                final String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDateTime);
                 setState(() {
                   for (var dateRange in updatedData) {
                     final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
@@ -565,24 +584,18 @@ class _HomePageState extends State<HomePage> {
                       if (endDateTime.isAfter(selectedDateTime) || endDateTime.isAtSameMomentAs(selectedDateTime)) {
                         for (var entry in dateRange['entries']) {
                           if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDateTime)) {
-                            setState(() {
-                              entry['isLocked'] = true;
-                              isLocked = true;
-                              final repository = ContractTransactionRepository();
-
-                              repository.addCategoryTransaction(
-                                journal: '',
-                                categoryId: categoryWithIds['category'] ?? 0,
-                                transactionDate: DateFormat('yyyy-MM-dd').format(selectedDate),
-                                isLocked: isLocked ? 'true' : 'false',
-                              );
-
-                            });
+                            entry['isLocked'] = true;
+                            isLocked = true;
                           }
                         }
                       }
                     }
                   }
+                  final repository = ContractTransactionRepository();
+                  repository.lockTransactionsByDate(
+                    transactionDate: transactionDate,
+                    isLocked: true,
+                  );
                 });
               },
             ),
@@ -593,3 +606,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+

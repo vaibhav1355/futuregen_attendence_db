@@ -124,6 +124,7 @@ class DatabaseHelper {
     print("All data from ContractTransaction table deleted.");
   }
 
+
 }
 
 
