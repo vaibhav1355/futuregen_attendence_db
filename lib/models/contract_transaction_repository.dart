@@ -79,27 +79,4 @@ class ContractTransactionRepository {
       print('Error in lockTransactionsByDate: $e');
     }
   }
-
-  Future<List<Map<String, dynamic>>> getContractData() async {
-    final db = await openDatabase('/data/user/0/com.example.futurgen_attendance/app_flutter/Attendance.db');
-    return await db.query('contracts');
-  }
-
-  Future<List<Map<String, dynamic>>> getEntries(DateTime startDate, DateTime endDate) async {
-    final db = await openDatabase('/data/user/0/com.example.futurgen_attendance/app_flutter/Attendance.db');
-    return await db.query(
-      'entries',
-      where: 'date BETWEEN ? AND ?',
-      whereArgs: [startDate.toIso8601String(), endDate.toIso8601String()],
-    );
-  }
-
-  Future<List<Map<String, dynamic>>> getCategoryDetails(int entryId) async {
-    final db = await openDatabase('/data/user/0/com.example.futurgen_attendance/app_flutter/Attendance.db');
-    return await db.query(
-      'categories',
-      where: 'entry_id = ?',
-      whereArgs: [entryId],
-    );
-  }
 }
