@@ -1,44 +1,95 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../models/contract_transaction_repository.dart';
 
 class DisplayCategoryList extends StatefulWidget {
-  final Map<String, dynamic> selectedDateData;
+
+  static const Map<String, int> categoryWithIds = {
+    'Admin-General': 1,
+    'Academic-General': 2,
+    'Fundraising-General': 3,
+    'Marketing-General': 4,
+    'Operations-General': 5,
+    'Finance-General': 6,
+    'HR-General': 7,
+    'Research-General': 8,
+    'Event Management-General': 9,
+    'Customer Service-General': 10,
+  };
+
   final Function(BuildContext) showCategoryBottomSheet;
   final Future<void> Function(BuildContext, int) selectTime;
   final Function(BuildContext, int, String, String) navigateToJournalScreen;
   final bool isPastContract;
+  final String selectedDate;
 
   DisplayCategoryList({
-    required this.selectedDateData,
     required this.showCategoryBottomSheet,
     required this.selectTime,
     required this.navigateToJournalScreen,
     required this.isPastContract,
+    required this.selectedDate,
   });
 
   @override
   _DisplayCategoryListState createState() => _DisplayCategoryListState();
 }
 
+
 class _DisplayCategoryListState extends State<DisplayCategoryList> {
+
+  List<Map<String, dynamic>> _categoryDetails = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategoryDetails();
+  }
+
+  @override
+  void didUpdateWidget(DisplayCategoryList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDate != oldWidget.selectedDate) {
+      _fetchCategoryDetails();
+    }
+  }
+
+  Future<void> _fetchCategoryDetails() async {
+    final fetchedData = await ContractTransactionRepository().fetchCategoryDetailsByDate(widget.selectedDate);
+
+    final mappedData = fetchedData.map((item) {
+      final categoryName = DisplayCategoryList.categoryWithIds.keys.firstWhere(
+            (key) => DisplayCategoryList.categoryWithIds[key] == item['categoryId'],
+        orElse: () => 'Unknown Category',
+      );
+
+      return {
+        'category': categoryName,
+        'hours': item['hours'],
+        'journal': item['journal'],
+        'isLock': item['isLock'],
+      };
+    }).toList();
+
+    setState(() {
+      _categoryDetails = mappedData;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final selectedDateData = widget.selectedDateData;
-
-    final isLocked = selectedDateData['isLocked'] ?? false;
-
+    final isLocked = _categoryDetails.every((item) => item['isLock'] == true);
     final showAddItemButton = widget.isPastContract && !isLocked;
 
     return Expanded(
       child: ListView.builder(
-        itemCount: showAddItemButton
-            ? selectedDateData['categorylist'].length + 1
-            : selectedDateData['categorylist'].length,
+        itemCount: showAddItemButton ? _categoryDetails.length + 1 : _categoryDetails.length,
         itemBuilder: (context, index) {
-          if (showAddItemButton && index == selectedDateData['categorylist'].length) {
+          if (showAddItemButton && index == _categoryDetails.length) {
             return _buildAddItemButton(context, isLocked);
           }
 
-          final item = selectedDateData['categorylist'][index];
+          final item = _categoryDetails[index];
           return _buildCategoryItem(context, item, index, isLocked);
         },
       ),
@@ -105,7 +156,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
                 SizedBox(width: 10, height: 50),
                 Flexible(
                   child: Text(
-                    item['time'],
+                    item['hours'],
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 20,
@@ -131,7 +182,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
                   context,
                   index,
                   item['category'],
-                  item['journals'],
+                  item['journal'] ,
                 );
               }
             },

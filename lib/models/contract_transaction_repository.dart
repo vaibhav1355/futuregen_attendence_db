@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'db_helper.dart';
 
 class ContractTransactionRepository {
+
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   Future<void> addCategoryTransaction({
@@ -53,13 +54,22 @@ class ContractTransactionRepository {
     }
   }
 
-
-  Future<List<Map<String, dynamic>>> fetchCategories() async {
+  Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transactionDate) async {
     final dbClient = await _dbHelper.database;
     try {
-      return await dbClient.query(DatabaseHelper.category);
+      return await dbClient.query(
+        DatabaseHelper.contractTransaction,
+        columns: [
+          DatabaseHelper.categoryId,
+          DatabaseHelper.hours,
+          DatabaseHelper.journal,
+          DatabaseHelper.isLock,
+        ],
+        where: '${DatabaseHelper.transactionDate} = ?',
+        whereArgs: [transactionDate],
+      );
     } catch (e) {
-      print('Error in fetchCategories: $e');
+      print('Error fetching category details for date $transactionDate: $e');
       return [];
     }
   }

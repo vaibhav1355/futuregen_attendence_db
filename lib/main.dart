@@ -35,7 +35,6 @@ Future<void> printTable() async {
   try {
     DatabaseHelper dbHelper = DatabaseHelper();
     await dbHelper.init();
-    await dbHelper.printCategoryTable();
     await dbHelper.printContractTransactionTable();
   } catch (e) {
     print("Error printing tables: $e");

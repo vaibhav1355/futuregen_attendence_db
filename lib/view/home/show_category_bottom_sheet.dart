@@ -86,7 +86,7 @@ class CategoryBottomSheet {
                                     'time': '00:00',
                                     'journals': '',
                                   });
-                                  String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                                  String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
                                   final repository = new ContractTransactionRepository();
                                   repository.addCategoryTransaction(
                                     categoryId: categoryWithIds[category] ?? 0,
@@ -98,7 +98,6 @@ class CategoryBottomSheet {
                                 }
                               }
                             });
-
                             onCategoryAdded();
                             Navigator.pop(context);
                           },

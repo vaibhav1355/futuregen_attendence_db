@@ -1,67 +1,87 @@
 // import 'package:flutter/material.dart';
-// import 'package:futuregen_attendance/view/drawer/app_drawer.dart';
-// import 'package:futuregen_attendance/view/home/display_bottom_date_and_hour.dart';
-// import 'package:futuregen_attendance/view/home/journal.dart';
+// import 'package:futurgen_attendance/view/drawer/app_drawer.dart';
+// import 'package:futurgen_attendance/view/home/display_bottom_date_and_hour.dart';
+// import 'package:futurgen_attendance/view/home/journal.dart';
+// import 'package:futurgen_attendance/view/home/show_category_bottom_sheet.dart';
 // import 'package:intl/intl.dart';
 //
 // import '../../Constants/constants.dart';
-//
+// import '../../models/contract_transaction_repository.dart';
+// import 'category_service.dart';
 // import 'display_category_list.dart';
 // import 'locking_and_saving.dart';
 // import 'no_contract_page.dart';
 //
 // class HomePage extends StatefulWidget {
+//
 //   const HomePage({super.key});
 //
 //   @override
 //   _HomePageState createState() => _HomePageState();
+//
 // }
 //
 // class _HomePageState extends State<HomePage> {
 //
+//
+//   static const Map<String, int> categoryWithIds = {
+//     'Admin-General': 1,
+//     'Academic-General': 2,
+//     'Fundraising-General': 3,
+//     'Marketing-General': 4,
+//     'Operations-General': 5,
+//     'Finance-General': 6,
+//     'HR-General': 7,
+//     'Research-General': 8,
+//     'Event Management-General': 9,
+//     'Customer Service-General': 10,
+//   };
+//
 //   final List<Map<String, dynamic>> updatedData = [
 //     {
-//       "startDate": "03-12-2024",
-//       "endDate": "05-12-2024",
+//       "startDate": "10-12-2024",
+//       "endDate": "13-12-2024",
 //       "totalDays": 0,
 //       "leftDays" : 0.0,
-//       "totalHours": 0.0,
-//       "leftHours": 0.0,
+//       "totalHours": 0,
+//       "leftHours": 0,
+//       "leftMinutes" : 0,
 //       "pastContract": false,
 //       "entries": [
 //         {
-//           "selectedDate": "05-12-2024",
+//           "selectedDate": "11-12-2024",
 //           "isLocked": false,
 //           "categorylist": [
-//             {'category': 'Admin-General', 'time': '2:15', 'journals': ''},
-//             {'category': 'Academic-General', 'time': '2:30', 'journals': ''},
-//             {'category': 'Customer Service-General', 'time': '2:15', 'journals': ''},
-//             {'category': 'Marketing-General', 'time': '1:15', 'journals': ''},
+//             {'category': 'Admin-General', 'time': '2:00', 'journals': 'yeh pehla se likha hoya h Sir Ji '},
+//             {'category': 'Academic-General', 'time': '2:00', 'journals': 'systummmmm '},
+//             {'category': 'Customer Service-General', 'time': '2:00', 'journals': 'jai baba ki'},
+//             {'category': 'Marketing-General', 'time': '2:00', 'journals': ''},
 //           ],
 //         },
 //         {
-//           "selectedDate": "03-12-2024",
+//           "selectedDate": "12-12-2024",
 //           "isLocked": false,
 //           "categorylist": [
-//             {'category': 'Admin-General', 'time': '01:10', 'journals': ''},
-//             {'category': 'Academic-General', 'time': '01:00', 'journals': ''},
-//             {'category': 'Customer Service-General', 'time': '01:15', 'journals': ''},
-//             {'category': 'Marketing-General', 'time': '01:20', 'journals': ''},
+//             {'category': 'Admin-General', 'time': '01:55', 'journals': 'yeh pehla se likha hoya h Sir Ji'},
+//             {'category': 'Academic-General', 'time': '01:00', 'journals': 'systummmmm'},
+//             {'category': 'Customer Service-General', 'time': '01:00', 'journals': 'JAI SHREE RAM!'},
+//             {'category': 'Marketing-General', 'time': '01:00', 'journals': 'systummmm!!'},
 //           ],
 //         },
 //       ],
 //     },
 //     {
-//       "startDate": "15-12-2024",
-//       "endDate": "30-12-2024",
+//       "startDate": "20-12-2024",
+//       "endDate": "10-01-2025",
 //       "totalDays": 0,
 //       "leftDays" : 0.0,
-//       "totalHours": 0.0,
-//       "leftHours": 0.0,
+//       "totalHours": 0,
+//       "leftHours": 0,
+//       "leftMinutes" : 0,
 //       "pastContract": false,
 //       "entries": [
 //         {
-//           "selectedDate": "20-12-2024",
+//           "selectedDate": "31-12-2024",
 //           "isLocked": false,
 //           "categorylist": [
 //             {'category': 'Admin-General', 'time': '02:25', 'journals': ''},
@@ -71,12 +91,12 @@
 //           ],
 //         },
 //         {
-//           "selectedDate": "19-12-2024",
+//           "selectedDate": "30-12-2024",
 //           "isLocked": false,
 //           "categorylist": [
 //             {'category': 'Admin-General', 'time': '01:15', 'journals': ''},
 //             {'category': 'Academic-General', 'time': '01:20', 'journals': ''},
-//             {'category': 'Customer Service-General', 'time': '1:20', 'journals': ''},
+//             {'category': 'Customer Service-General', 'time': '01:20', 'journals': ''},
 //             {'category': 'Marketing-General', 'time': '01:45', 'journals': ''},
 //           ],
 //         },
@@ -85,19 +105,28 @@
 //   ];
 //
 //   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+//
 //   final DateTime currentDate = DateTime.now();
 //   late DateTime selectedDate;
+//
+//   late String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
 //
 //   DateTime? minStartDate;
 //   DateTime? maxEndDate;
 //
-//   double totalHours = 0.0 ;
+//   int totalHours = 0 ;
 //   int totalDays = 0 ;
-//   double leftHours = 0.0 ;
+//   int leftHours = 0 ;
+//   int leftMinutes = 0 ;
 //   double leftDays= 0.0 ;
+//
+//   int currentDayTotalHours = 0 ;
+//   int currentDayTotalMinutes = 0 ;
 //
 //   bool contractExist = false ;
 //   bool isPastContract = false;
+//   bool isLocked = false;
+//
 //
 //   @override
 //   void initState() {
@@ -111,7 +140,6 @@
 //
 //   void updateTotalDaysAndHours() {
 //     int _daysBetween(DateTime start, DateTime end) => end.difference(start).inDays;
-//
 //     try {
 //       for (var range in updatedData) {
 //         DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
@@ -120,7 +148,6 @@
 //         int totalUsedMinutes = 0;
 //
 //         for (var entry in range['entries']) {
-//
 //           for (var item in entry['categorylist']) {
 //             final timeParts = item['time'].split(':');
 //             if (timeParts.length == 2) {
@@ -133,19 +160,22 @@
 //         int totalUsedHours = totalUsedMinutes ~/ 60;
 //         totalUsedMinutes %= 60;
 //
-//         int rangeDays = _daysBetween(rangeStartDate, rangeEndDate)+1;
-//         double rangeTotalHours = rangeDays * 8.0;
-//         double remainingHours = rangeTotalHours - totalUsedHours - (totalUsedMinutes / 60.0);
+//         int rangeDays = _daysBetween(rangeStartDate, rangeEndDate) + 1;
+//
+//         int rangeTotalMinutes = rangeDays * 8 * 60;
+//         int remainingMinutes = rangeTotalMinutes - ((totalUsedHours * 60)+ totalUsedMinutes);
+//
+//         double remainingHours = remainingMinutes / 60.0;
 //
 //         setState(() {
 //           range['totalDays'] = rangeDays;
-//           range['totalHours'] = rangeTotalHours;
-//           range['leftHours'] = double.parse(remainingHours.toStringAsFixed(2));
+//           range['totalHours'] = rangeTotalMinutes ~/ 60;
+//           range['leftHours'] = remainingHours.floor();
+//           range['leftMinutes'] = remainingMinutes % 60;
 //           range['leftDays'] = double.parse((remainingHours / 8.0).toStringAsFixed(2));
-//
 //         });
-//       }
 //
+//       }
 //       bool dateInRange = false;
 //
 //       for (var range in updatedData) {
@@ -160,27 +190,20 @@
 //             totalDays = range['totalDays'];
 //             totalHours = range['totalHours'];
 //             leftHours = range['leftHours'];
+//             leftMinutes = range['leftMinutes'];
 //             leftDays = range['leftDays'];
 //           });
-//
-//           print(
-//               'For selectedDate $selectedDate: totalDays = $totalDays, leftDays = $leftDays, totalHours = $totalHours, leftHours = $leftHours');
-//           break;
 //         }
 //       }
-//
 //       if (!dateInRange) {
-//         // Reset state if no range matches
 //         setState(() {
 //           totalDays = 0;
-//           totalHours = 0.0;
-//           leftHours = 0.0;
+//           totalHours = 0;
+//           leftHours = 0;
+//           leftMinutes = 0;
 //           leftDays = 0.0;
 //         });
-//
-//         print('No matching range found for selectedDate $selectedDate');
 //       }
-//
 //     } catch (e) {
 //       print('Error in updateTotalDaysAndHours: $e');
 //     }
@@ -199,25 +222,24 @@
 //   void _pastContract() {
 //     final DateFormat dateFormat = DateFormat("dd-MM-yyyy");
 //
+//     bool isDateInPastContract = false;
+//
 //     for (var range in updatedData) {
 //       try {
 //         DateTime rangeEndDate = dateFormat.parse(range['endDate'] as String);
-//
 //         if (selectedDate.isAfter(rangeEndDate)) {
-//           setState(() {
-//             range['pastContract'] = true;
-//           });
+//           isDateInPastContract = true;
+//           range['pastContract'] = true;
 //         } else {
-//           setState(() {
-//             range['pastContract'] = false;
-//           });
+//           range['pastContract'] = false;
 //         }
 //       } catch (e) {
 //         print('Error parsing date in _pastContract: $e');
 //       }
 //     }
-//
-//     print('Updated updatedData: $updatedData');
+//     setState(() {
+//       isPastContract = isDateInPastContract;
+//     });
 //   }
 //
 //   Future<void> _selectDate(BuildContext context) async {
@@ -232,43 +254,63 @@
 //         selectedDate = picked;
 //         _ensureDateExists();
 //         updateTotalDaysAndHours();
+//         _pastContract();
 //       });
 //     }
 //   }
 //
 //   Future<void> _selectTime(BuildContext context, int index) async {
-//
 //     final TimeOfDay? picked = await showTimePicker(
 //       context: context,
-//       initialTime: TimeOfDay(hour: 00, minute: 00),
+//       initialTime: TimeOfDay(hour: 0, minute: 0),
 //       initialEntryMode: TimePickerEntryMode.dial,
 //     );
 //
 //     if (picked != null) {
 //       setState(() {
-//         final newTime = DateTime(
-//           selectedDate.year,
-//           selectedDate.month,
-//           selectedDate.day,
-//           picked.hour,
-//           picked.minute,
-//         );
 //
-//         String formattedTime = DateFormat('HH:mm').format(newTime);
-//         String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+//         int hour = picked.hour;
+//         if (hour == 0) {
+//           hour = 12;
+//         }
+//
+//         final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+//         final String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
 //
 //         for (var range in updatedData) {
-//           DateTime rangeStartdate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
+//           DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
 //           DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
 //
-//           if ((selectedDate.isAfter(rangeStartdate) && selectedDate.isBefore(rangeEndDate)) ||
-//               selectedDate.isAtSameMomentAs(rangeStartdate) ||
+//           if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
+//               selectedDate.isAtSameMomentAs(rangeStartDate) ||
 //               selectedDate.isAtSameMomentAs(rangeEndDate)) {
-//
 //             for (var entry in range['entries']) {
 //               if (entry['selectedDate'] == formattedDate) {
-//                 entry['categorylist'][index]['time'] = formattedTime;
-//                 break;
+//                 final categoryList = entry['categorylist'];
+//                 if (index < categoryList.length) {
+//                   categoryList[index]['time'] = formattedTime;
+//
+//                   final String category = categoryList[index]['category'];
+//                   final int? categoryId = categoryWithIds[category];
+//
+//                   if (categoryId != null) {
+//                     try {
+//                       final repository = ContractTransactionRepository();
+//                       repository.addCategoryTransaction(
+//                         transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
+//                         hours: formattedTime,
+//                         categoryId: categoryId,
+//                         journal: categoryList[index]['journals'] ?? '',
+//                         isLocked: entry['isLocked'].toString(),
+//                       );
+//                     } catch (e) {
+//                       print('Error adding transaction: $e');
+//                     }
+//                   } else {
+//                     print('Error: Invalid category ID for $category');
+//                   }
+//                   break;
+//                 }
 //               }
 //             }
 //           }
@@ -279,23 +321,43 @@
 //   }
 //
 //   void _ensureDateExists() {
+//     const dateFormat = 'dd-MM-yyyy';
 //     bool dateExists = true;
+//
 //     for (var range in updatedData) {
-//       DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
-//       DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
+//       DateTime rangeStartDate = DateFormat(dateFormat).parse(range['startDate']);
+//       DateTime rangeEndDate = DateFormat(dateFormat).parse(range['endDate']);
 //
 //       if (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate) ||
 //           selectedDate.isAtSameMomentAs(rangeStartDate) || selectedDate.isAtSameMomentAs(rangeEndDate)) {
+//
 //         if (range['entries'] is! List) {
 //           range['entries'] = [];
 //         }
 //
 //         bool dataExists = range['entries'].any((entry) =>
-//         entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDate));
+//         entry['selectedDate'] == DateFormat(dateFormat).format(selectedDate));
+//
+//         if (dataExists) {
+//           for (var entry in range['entries']) {
+//             if (entry['selectedDate'] == DateFormat(dateFormat).format(selectedDate)) {
+//               for (var categoryEntry in entry['categorylist']) {
+//                 final repository = ContractTransactionRepository();
+//                 repository.addCategoryTransaction(
+//                   transactionDate: entry['selectedDate'],
+//                   categoryId: categoryWithIds[categoryEntry['category']],
+//                   journal: categoryEntry['journals'],
+//                   hours: categoryEntry['time'],
+//                   isLocked: entry['isLocked'].toString(),
+//                 );
+//               }
+//             }
+//           }
+//         }
 //
 //         if (!dataExists) {
 //           range['entries'].add({
-//             'selectedDate': DateFormat('dd-MM-yyyy').format(selectedDate),
+//             'selectedDate': DateFormat(dateFormat).format(selectedDate),
 //             'isLocked': false,
 //             'categorylist': [
 //               {'category': 'Admin-General', 'time': '0:00', 'journals': ''},
@@ -303,6 +365,28 @@
 //               {'category': 'Fundraising-General', 'time': '0:00', 'journals': ''},
 //             ],
 //           });
+//           final repository = new ContractTransactionRepository();
+//           repository.addCategoryTransaction(
+//             transactionDate: DateFormat(dateFormat).format(selectedDate),
+//             categoryId: categoryWithIds['Admin-General'],
+//             journal: '',
+//             hours: '00:00',
+//             isLocked: 'false',
+//           );
+//           repository.addCategoryTransaction(
+//             transactionDate: DateFormat(dateFormat).format(selectedDate),
+//             categoryId: categoryWithIds['Academic-General'],
+//             journal: '',
+//             hours: '00:00',
+//             isLocked: 'false',
+//           );
+//           repository.addCategoryTransaction(
+//             transactionDate: DateFormat(dateFormat).format(selectedDate),
+//             categoryId: categoryWithIds['Fundraising-General'],
+//             journal: '',
+//             hours: '00:00',
+//             isLocked: 'false',
+//           );
 //         }
 //         dateExists = false;
 //         break;
@@ -332,6 +416,32 @@
 //           'endDate': formattedDate,
 //           'entries': [],
 //         });
+//         try {
+//           final repository = ContractTransactionRepository();
+//           repository.addCategoryTransaction(
+//             transactionDate: formattedDate,
+//             categoryId: categoryWithIds['Admin-General'],
+//             hours: '00:00',
+//             isLocked: 'false',
+//             journal: '',
+//           );
+//           repository.addCategoryTransaction(
+//             transactionDate: formattedDate,
+//             categoryId: categoryWithIds['Academic-General'],
+//             hours: '00:00',
+//             isLocked: 'false',
+//             journal: '',
+//           );
+//           repository.addCategoryTransaction(
+//             transactionDate: formattedDate,
+//             categoryId: categoryWithIds['Fundraising-General'],
+//             hours: '00:00',
+//             isLocked: 'false',
+//             journal: '',
+//           );
+//         } catch (e) {
+//           print('Error adding category transaction: $e');
+//         }
 //         return updatedData.last;
 //       },
 //     );
@@ -349,14 +459,35 @@
 //           ],
 //         };
 //         entry['entries'].add(newEntry);
+//         const dateFormat = 'dd-MM-yyyy';
+//         final repository = new ContractTransactionRepository();
+//         repository.addCategoryTransaction(
+//           transactionDate: DateFormat(dateFormat).format(selectedDate),
+//           categoryId: categoryWithIds['Admin-General'],
+//           journal: '',
+//           hours: '00:00',
+//           isLocked: 'false',
+//         );
+//         repository.addCategoryTransaction(
+//           transactionDate: DateFormat(dateFormat).format(selectedDate),
+//           categoryId: categoryWithIds['Academic-General'],
+//           journal: '',
+//           hours: '00:00',
+//           isLocked: 'false',
+//         );
+//         repository.addCategoryTransaction(
+//           transactionDate: DateFormat(dateFormat).format(selectedDate),
+//           categoryId: categoryWithIds['Fundraising-General'],
+//           journal: '',
+//           hours: '00:00',
+//           isLocked: 'false',
+//         );
 //         return newEntry;
 //       },
 //     );
 //   }
 //
 //   void _navigateToJournalScreen(BuildContext context, int index, String category, String initialJournalText) async {
-//     final DateTime selectedDateTime = selectedDate;
-//
 //     final result = await Navigator.push(
 //       context,
 //       MaterialPageRoute(
@@ -364,27 +495,51 @@
 //           index: index,
 //           category: category,
 //           initialJournalText: initialJournalText,
+//           isPastContract: !isPastContract,
 //           onJournalUpdate: (updatedText) {
 //             setState(() {
+//               bool isDateFound = false;
 //               for (var dateRange in updatedData) {
 //                 final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
 //                 final DateTime endDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
 //
-//                 if (startDateTime.isBefore(selectedDateTime) || startDateTime.isAtSameMomentAs(selectedDateTime)) {
-//                   if (endDateTime.isAfter(selectedDateTime) || endDateTime.isAtSameMomentAs(selectedDateTime)) {
-//                     for (var entry in dateRange['entries']) {
-//                       if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDateTime)) {
-//                         for (var categoryObj in entry['categorylist']) {
-//                           if (categoryObj['category'] == category) {
-//                             categoryObj['journals'] = updatedText;
-//                             break;
-//                           }
+//                 if ((startDateTime.isBefore(selectedDate) ||
+//                     startDateTime.isAtSameMomentAs(selectedDate)) &&
+//                     (endDateTime.isAfter(selectedDate) ||
+//                         endDateTime.isAtSameMomentAs(selectedDate))) {
+//                   for (var entry in dateRange['entries']) {
+//                     if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDate)) {
+//                       isDateFound = true;
+//
+//                       for (var categoryObj in entry['categorylist']) {
+//                         if (categoryObj['category'] == category) {
+//                           categoryObj['journals'] = updatedText;
+//                           final repository = ContractTransactionRepository();
+//                           repository.addCategoryTransaction(
+//                             transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
+//                             hours: entry['categorylist'][index]['time'],
+//                             categoryId: categoryWithIds[category] ?? 0,
+//                             journal: updatedText,
+//                             isLocked: 'false',
+//                           );
+//                           break;
 //                         }
 //                       }
+//                       break;
 //                     }
 //                   }
 //                 }
 //               }
+//               if (!isDateFound) {
+//                 final repository = ContractTransactionRepository();
+//                 repository.addCategoryTransaction(
+//                   transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
+//                   categoryId: categoryWithIds[category] ?? 0,
+//                   journal: updatedText,
+//                   isLocked: isLocked ? 'true' : 'false',
+//                 );
+//               }
+//               CategoryService.fetchCategoryDetails(formattedDate);
 //             });
 //           },
 //         ),
@@ -392,140 +547,26 @@
 //     );
 //   }
 //
-//   final List<String> categories = [
-//     'Admin-General',
-//     'Academic-General',
-//     'Fundraising-General',
-//     'Marketing-General',
-//     'Operations-General',
-//     'Finance-General',
-//     'HR-General',
-//     'Research-General',
-//     'Event Management-General',
-//     'Customer Service-General',
-//   ];
-//
 //   void _showCategoryBottomSheet(BuildContext context) {
-//     Map<String, bool> checkboxStates = {};
-//
 //     var selectedDateData = _getSelectedDateData();
 //
-//     selectedDateData['categorylist'].forEach((item) {
-//       checkboxStates[item['category']] = true;
-//     });
-//
-//     showModalBottomSheet(
+//     CategoryBottomSheet.showCategoryBottomSheet(
 //       context: context,
-//       builder: (BuildContext context) {
-//         return StatefulBuilder(
-//           builder: (BuildContext context, StateSetter setState) {
-//             return Padding(
-//               padding: EdgeInsets.all(4.0),
-//               child: Column(
-//                 children: [
-//                   Padding(
-//                     padding: EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 10),
-//                     child: Row(
-//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                       children: [
-//                         InkWell(
-//                           onTap: () {
-//                             Navigator.pop(context);
-//                           },
-//                           child: Padding(
-//                             padding: EdgeInsets.all(8.0),
-//                             child: Text(
-//                               'Cancel',
-//                               style: TextStyle(
-//                                 color: Color(0xff6C60FF),
-//                                 fontWeight: FontWeight.w500,
-//                                 fontSize: 16,
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                         InkWell(
-//                           onTap: () {
-//                             setState(() {
-//                               categories.forEach((category) {
-//                                 if (checkboxStates[category] == true) {
-//                                   bool isAlreadySelected = selectedDateData['categorylist']
-//                                       .any((item) => item['category'] == category);
+//       selectedDateData: selectedDateData,
+//       selectedDate: selectedDate,
+//       onCategoryAdded: () {
+//         setState(() {
 //
-//                                   if (!isAlreadySelected) {
-//                                     selectedDateData['categorylist'].add({
-//                                       'category': category,
-//                                       'time': '00:00',
-//                                       'journals': '',
-//                                     });
-//                                   }
-//                                 }
-//                               });
-//                             });
-//                             Navigator.pop(context);
-//                           },
-//                           child: Padding(
-//                             padding: EdgeInsets.all(8.0),
-//                             child: Text(
-//                               'Add Category',
-//                               style: TextStyle(
-//                                 color: Color(0xff6C60FF),
-//                                 fontWeight: FontWeight.w500,
-//                                 fontSize: 16,
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                   Divider(),
-//                   Expanded(
-//                     child: ListView.builder(
-//                       itemCount: categories.length,
-//                       itemBuilder: (context, index) {
-//                         String category = categories[index];
-//                         bool isChecked = checkboxStates[category] ?? false;
-//
-//                         bool isAlreadySelected = selectedDateData['categorylist']
-//                             .any((item) => item['category'] == category);
-//
-//                         return Column(
-//                           children: [
-//                             CheckboxListTile(
-//                               title: Text(category),
-//                               value: isChecked,
-//                               onChanged: (bool? value) {
-//                                 setState(() {
-//                                   if (isAlreadySelected && !(value ?? false)) {
-//                                     // Prevent unchecking already selected categories
-//                                     return;
-//                                   }
-//                                   checkboxStates[category] = value ?? false;
-//                                 });
-//                               },
-//                               controlAffinity: ListTileControlAffinity.leading,
-//                             ),
-//                             Divider(),
-//                           ],
-//                         );
-//                       },
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             );
-//           },
-//         );
+//         });
 //       },
-//     ).then((_) {
-//       setState(() {});
-//     });
+//     );
 //   }
+//
 //
 //   @override
 //
 //   Widget build(BuildContext context) {
+//
 //     return Scaffold(
 //       key: _scaffoldKey,
 //       appBar: AppBar(
@@ -558,9 +599,9 @@
 //                     setState(() {
 //                       if (selectedDate.isAfter(minStartDate!)) {
 //                         selectedDate = selectedDate.subtract(Duration(days: 1));
-//                         print('After Subtraction: $selectedDate');
 //                         _ensureDateExists();
 //                         updateTotalDaysAndHours();
+//                         _pastContract();
 //                       }
 //                     });
 //                   },
@@ -585,6 +626,7 @@
 //                         selectedDate = selectedDate.add(Duration(days: 1));
 //                         _ensureDateExists();
 //                         updateTotalDaysAndHours();
+//                         _pastContract();
 //                       }
 //                     });
 //                   },
@@ -592,48 +634,53 @@
 //               ],
 //             ),
 //           ),
-//           // if (!contractExist) NoContractPage(),
-//           // if(contractExist) ...[
-//           //   SizedBoxHeight10,
-//           //   DisplayCategoryList(
-//           //     selectedDateData: _getSelectedDateData(),
-//           //     showCategoryBottomSheet: _showCategoryBottomSheet,
-//           //     selectTime: _selectTime,
-//           //     navigateToJournalScreen: _navigateToJournalScreen,
-//           //   ),
-//           //   LockAndSaving(
-//           //     selectedDateData: _getSelectedDateData(),
-//           //     onSave: () {
-//           //       String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-//           //       print("Data saved for $formattedDate");
-//           //     },
-//           //     onLock: () {
-//           //       final DateTime selectedDateTime = selectedDate;
-//           //       setState(() {
-//           //         for (var dateRange in updatedData) {
-//           //           final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
-//           //           final DateTime endDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
-//           //
-//           //           if (startDateTime.isBefore(selectedDateTime) || startDateTime.isAtSameMomentAs(selectedDateTime)) {
-//           //             if (endDateTime.isAfter(selectedDateTime) || endDateTime.isAtSameMomentAs(selectedDateTime)) {
-//           //               for (var entry in dateRange['entries']) {
-//           //                 if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDateTime)) {
-//           //                   entry['isLocked'] = true;
-//           //                 }
-//           //               }
-//           //             }
-//           //           }
-//           //         }
-//           //       });
-//           //     },
-//           //   ),
-//           //   DisplayBottomDateAndHour(totalHours: totalHours,totalDays : totalDays, leftHours: leftHours, leftDays: leftDays),
-//           // ]
+//           if (!contractExist) NoContractPage(),
+//           if(contractExist) ...[
+//             SizedBoxHeight10,
+//             DisplayCategoryList(
+//               showCategoryBottomSheet: _showCategoryBottomSheet,
+//               selectTime: _selectTime,
+//               navigateToJournalScreen: _navigateToJournalScreen,
+//               isPastContract: isPastContract,
+//               selectedDate: DateFormat('dd-MM-yyyy').format(selectedDate).toString(),
+//             ),
+//             if(isPastContract) LockAndSaving(
+//               selectedDateData: _getSelectedDateData(),
+//               onSave: () {
+//                 String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+//                 print("Data saved for $formattedDate");
+//               },
+//               onLock: () {
+//                 final DateTime selectedDateTime = selectedDate;
+//                 final String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDateTime);
+//                 setState(() {
+//                   for (var dateRange in updatedData) {
+//                     final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
+//                     final DateTime endDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
+//
+//                     if (startDateTime.isBefore(selectedDateTime) || startDateTime.isAtSameMomentAs(selectedDateTime)) {
+//                       if (endDateTime.isAfter(selectedDateTime) || endDateTime.isAtSameMomentAs(selectedDateTime)) {
+//                         for (var entry in dateRange['entries']) {
+//                           if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDateTime)) {
+//                             entry['isLocked'] = true;
+//                             isLocked = true;
+//                           }
+//                         }
+//                       }
+//                     }
+//                   }
+//                   final repository = ContractTransactionRepository();
+//                   repository.lockTransactionsByDate(
+//                     transactionDate: transactionDate,
+//                     isLocked: true,
+//                   );
+//                 });
+//               },
+//             ),
+//             DisplayBottomDateAndHour(totalHours: totalHours ,totalDays : totalDays, leftHours: leftHours, leftDays: leftDays, leftMinutes: leftMinutes,),
+//           ]
 //         ],
 //       ),
 //     );
 //   }
 // }
-//
-//
-//

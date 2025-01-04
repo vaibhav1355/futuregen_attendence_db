@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:futurgen_attendance/view/drawer/app_drawer.dart';
 import 'package:futurgen_attendance/view/home/display_bottom_date_and_hour.dart';
@@ -8,18 +7,22 @@ import 'package:intl/intl.dart';
 
 import '../../Constants/constants.dart';
 import '../../models/contract_transaction_repository.dart';
+import 'category_service.dart';
 import 'display_category_list.dart';
 import 'locking_and_saving.dart';
 import 'no_contract_page.dart';
 
 class HomePage extends StatefulWidget {
+
   const HomePage({super.key});
 
   @override
   _HomePageState createState() => _HomePageState();
+
 }
 
 class _HomePageState extends State<HomePage> {
+
 
   static const Map<String, int> categoryWithIds = {
     'Admin-General': 1,
@@ -93,7 +96,7 @@ class _HomePageState extends State<HomePage> {
           "categorylist": [
             {'category': 'Admin-General', 'time': '01:15', 'journals': ''},
             {'category': 'Academic-General', 'time': '01:20', 'journals': ''},
-            {'category': 'Customer Service-General', 'time': '1:20', 'journals': ''},
+            {'category': 'Customer Service-General', 'time': '01:20', 'journals': ''},
             {'category': 'Marketing-General', 'time': '01:45', 'journals': ''},
           ],
         },
@@ -106,6 +109,8 @@ class _HomePageState extends State<HomePage> {
   final DateTime currentDate = DateTime.now();
   late DateTime selectedDate;
 
+  late String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+
   DateTime? minStartDate;
   DateTime? maxEndDate;
 
@@ -113,7 +118,7 @@ class _HomePageState extends State<HomePage> {
   int totalDays = 0 ;
   int leftHours = 0 ;
   int leftMinutes = 0 ;
-  double leftDays= 0.0;
+  double leftDays= 0.0 ;
 
   int currentDayTotalHours = 0 ;
   int currentDayTotalMinutes = 0 ;
@@ -121,6 +126,7 @@ class _HomePageState extends State<HomePage> {
   bool contractExist = false ;
   bool isPastContract = false;
   bool isLocked = false;
+
 
   @override
   void initState() {
@@ -197,7 +203,6 @@ class _HomePageState extends State<HomePage> {
           leftMinutes = 0;
           leftDays = 0.0;
         });
-
       }
     } catch (e) {
       print('Error in updateTotalDaysAndHours: $e');
@@ -263,6 +268,12 @@ class _HomePageState extends State<HomePage> {
 
     if (picked != null) {
       setState(() {
+
+        int hour = picked.hour;
+        if (hour == 0) {
+          hour = 12;
+        }
+
         final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
         final String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
 
@@ -327,6 +338,23 @@ class _HomePageState extends State<HomePage> {
         bool dataExists = range['entries'].any((entry) =>
         entry['selectedDate'] == DateFormat(dateFormat).format(selectedDate));
 
+        if (dataExists) {
+          for (var entry in range['entries']) {
+            if (entry['selectedDate'] == DateFormat(dateFormat).format(selectedDate)) {
+              for (var categoryEntry in entry['categorylist']) {
+                final repository = ContractTransactionRepository();
+                repository.addCategoryTransaction(
+                  transactionDate: entry['selectedDate'],
+                  categoryId: categoryWithIds[categoryEntry['category']],
+                  journal: categoryEntry['journals'],
+                  hours: categoryEntry['time'],
+                  isLocked: entry['isLocked'].toString(),
+                );
+              }
+            }
+          }
+        }
+
         if (!dataExists) {
           range['entries'].add({
             'selectedDate': DateFormat(dateFormat).format(selectedDate),
@@ -337,6 +365,28 @@ class _HomePageState extends State<HomePage> {
               {'category': 'Fundraising-General', 'time': '0:00', 'journals': ''},
             ],
           });
+          final repository = new ContractTransactionRepository();
+          repository.addCategoryTransaction(
+            transactionDate: DateFormat(dateFormat).format(selectedDate),
+            categoryId: categoryWithIds['Admin-General'],
+            journal: '',
+            hours: '00:00',
+            isLocked: 'false',
+          );
+          repository.addCategoryTransaction(
+            transactionDate: DateFormat(dateFormat).format(selectedDate),
+            categoryId: categoryWithIds['Academic-General'],
+            journal: '',
+            hours: '00:00',
+            isLocked: 'false',
+          );
+          repository.addCategoryTransaction(
+            transactionDate: DateFormat(dateFormat).format(selectedDate),
+            categoryId: categoryWithIds['Fundraising-General'],
+            journal: '',
+            hours: '00:00',
+            isLocked: 'false',
+          );
         }
         dateExists = false;
         break;
@@ -409,6 +459,29 @@ class _HomePageState extends State<HomePage> {
           ],
         };
         entry['entries'].add(newEntry);
+        const dateFormat = 'dd-MM-yyyy';
+        final repository = new ContractTransactionRepository();
+        repository.addCategoryTransaction(
+          transactionDate: DateFormat(dateFormat).format(selectedDate),
+          categoryId: categoryWithIds['Admin-General'],
+          journal: '',
+          hours: '00:00',
+          isLocked: 'false',
+        );
+        repository.addCategoryTransaction(
+          transactionDate: DateFormat(dateFormat).format(selectedDate),
+          categoryId: categoryWithIds['Academic-General'],
+          journal: '',
+          hours: '00:00',
+          isLocked: 'false',
+        );
+        repository.addCategoryTransaction(
+          transactionDate: DateFormat(dateFormat).format(selectedDate),
+          categoryId: categoryWithIds['Fundraising-General'],
+          journal: '',
+          hours: '00:00',
+          isLocked: 'false',
+        );
         return newEntry;
       },
     );
@@ -466,6 +539,7 @@ class _HomePageState extends State<HomePage> {
                   isLocked: isLocked ? 'true' : 'false',
                 );
               }
+              CategoryService.fetchCategoryDetails(formattedDate);
             });
           },
         ),
@@ -481,16 +555,20 @@ class _HomePageState extends State<HomePage> {
       selectedDateData: selectedDateData,
       selectedDate: selectedDate,
       onCategoryAdded: () {
-        setState(() {});
+        setState(() {
+
+        });
       },
     );
   }
 
+
   @override
 
   Widget build(BuildContext context) {
+
     return Scaffold(
-    key: _scaffoldKey,
+      key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Colors.black,
         leading: IconButton(
@@ -560,11 +638,11 @@ class _HomePageState extends State<HomePage> {
           if(contractExist) ...[
             SizedBoxHeight10,
             DisplayCategoryList(
-              selectedDateData: _getSelectedDateData(),
               showCategoryBottomSheet: _showCategoryBottomSheet,
               selectTime: _selectTime,
               navigateToJournalScreen: _navigateToJournalScreen,
               isPastContract: isPastContract,
+              selectedDate: DateFormat('dd-MM-yyyy').format(selectedDate).toString(),
             ),
             if(isPastContract) LockAndSaving(
               selectedDateData: _getSelectedDateData(),
@@ -606,4 +684,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-

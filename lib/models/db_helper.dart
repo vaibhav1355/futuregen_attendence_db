@@ -5,7 +5,7 @@ import 'package:path/path.dart';
 
 class DatabaseHelper {
 
-  static const databaseName = "Attendance.db";
+  static const databaseName = "Attendance2.db";
   static const databaseVersion = 1;
   static Database? db;
 
@@ -82,11 +82,11 @@ class DatabaseHelper {
     print("Creating ContractTransaction Table...");
     await db.execute('''
     CREATE TABLE $contractTransaction(
-      $transactionId INTEGER AUTOINCREMENT,
+      $transactionId INTEGER PRIMARY KEY AUTOINCREMENT,
       $empId INTEGER,
-      $transactionDate TEXT PRIMARY KEY,
+      $transactionDate TEXT ,
       $categoryId INTEGER,
-      $hours STRING,
+      $hours TEXT,
       $journal TEXT,
       $dateSubmitted TEXT,
       $submittedBy INTEGER,
@@ -100,12 +100,12 @@ class DatabaseHelper {
     print("ContractTransaction Table Created.");
   }
 
-  Future<void> printCategoryTable() async {
-    final dbClient = await database;
-    final List<Map<String, dynamic>> categoryData = await dbClient.query(category);
-    print("Category Table Data:");
-    categoryData.forEach((row) => print(row));
-  }
+  // Future<void> printCategoryTable() async {
+  //   final dbClient = await database;
+  //   final List<Map<String, dynamic>> categoryData = await dbClient.query(category);
+  //   print("Category Table Data:");
+  //   categoryData.forEach((row) => print(row));
+  // }
 
   Future<void> printContractTransactionTable() async {
     final dbClient = await database;
@@ -124,7 +124,5 @@ class DatabaseHelper {
     print("All data from ContractTransaction table deleted.");
   }
 
-
 }
-
 
