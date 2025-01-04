@@ -259,67 +259,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _selectTime(BuildContext context, int index) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: 0, minute: 0),
-      initialEntryMode: TimePickerEntryMode.dial,
-    );
-
-    if (picked != null) {
-      setState(() {
-
-        int hour = picked.hour;
-        if (hour == 0) {
-          hour = 12;
-        }
-
-        final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-        final String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-
-        for (var range in updatedData) {
-          DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
-          DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
-
-          if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
-              selectedDate.isAtSameMomentAs(rangeStartDate) ||
-              selectedDate.isAtSameMomentAs(rangeEndDate)) {
-            for (var entry in range['entries']) {
-              if (entry['selectedDate'] == formattedDate) {
-                final categoryList = entry['categorylist'];
-                if (index < categoryList.length) {
-                  categoryList[index]['time'] = formattedTime;
-
-                  final String category = categoryList[index]['category'];
-                  final int? categoryId = categoryWithIds[category];
-
-                  if (categoryId != null) {
-                    try {
-                      final repository = ContractTransactionRepository();
-                      repository.addCategoryTransaction(
-                        transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
-                        hours: formattedTime,
-                        categoryId: categoryId,
-                        journal: categoryList[index]['journals'] ?? '',
-                        isLocked: entry['isLocked'].toString(),
-                      );
-                    } catch (e) {
-                      print('Error adding transaction: $e');
-                    }
-                  } else {
-                    print('Error: Invalid category ID for $category');
-                  }
-                  break;
-                }
-              }
-            }
-          }
-        }
-        updateTotalDaysAndHours();
-      });
-    }
-  }
-
   void _ensureDateExists() {
     const dateFormat = 'dd-MM-yyyy';
     bool dateExists = true;
@@ -562,7 +501,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   @override
 
   Widget build(BuildContext context) {
@@ -639,10 +577,11 @@ class _HomePageState extends State<HomePage> {
             SizedBoxHeight10,
             DisplayCategoryList(
               showCategoryBottomSheet: _showCategoryBottomSheet,
-              selectTime: _selectTime,
               navigateToJournalScreen: _navigateToJournalScreen,
               isPastContract: isPastContract,
               selectedDate: DateFormat('dd-MM-yyyy').format(selectedDate).toString(),
+              updatedData: updatedData,
+              updateTotalDaysAndHours: updateTotalDaysAndHours,
             ),
             if(isPastContract) LockAndSaving(
               selectedDateData: _getSelectedDateData(),

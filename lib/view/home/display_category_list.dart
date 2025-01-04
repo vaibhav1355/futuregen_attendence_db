@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../models/contract_transaction_repository.dart';
 
 class DisplayCategoryList extends StatefulWidget {
@@ -18,17 +19,19 @@ class DisplayCategoryList extends StatefulWidget {
   };
 
   final Function(BuildContext) showCategoryBottomSheet;
-  final Future<void> Function(BuildContext, int) selectTime;
+  final List<Map<String, dynamic>> updatedData;
   final Function(BuildContext, int, String, String) navigateToJournalScreen;
   final bool isPastContract;
   final String selectedDate;
+  final void Function() updateTotalDaysAndHours;
 
   DisplayCategoryList({
     required this.showCategoryBottomSheet,
-    required this.selectTime,
+    required this.updatedData,
     required this.navigateToJournalScreen,
     required this.isPastContract,
     required this.selectedDate,
+    required this.updateTotalDaysAndHours,
   });
 
   @override
@@ -39,6 +42,19 @@ class DisplayCategoryList extends StatefulWidget {
 class _DisplayCategoryListState extends State<DisplayCategoryList> {
 
   List<Map<String, dynamic>> _categoryDetails = [];
+
+  static const Map<String, int> categoryWithIds = {
+    'Admin-General': 1,
+    'Academic-General': 2,
+    'Fundraising-General': 3,
+    'Marketing-General': 4,
+    'Operations-General': 5,
+    'Finance-General': 6,
+    'HR-General': 7,
+    'Research-General': 8,
+    'Event Management-General': 9,
+    'Customer Service-General': 10,
+  };
 
   @override
   void initState() {
@@ -74,6 +90,92 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
     setState(() {
       _categoryDetails = mappedData;
     });
+  }
+
+  Future<void> _selectTime(BuildContext context, int index) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: 0, minute: 0),
+      initialEntryMode: TimePickerEntryMode.dial,
+    );
+
+    if (picked != null) {
+      // Adjust hour to 12 if it is 0 (midnight)
+      int hour = picked.hour == 0 ? 12 : picked.hour;
+      final String formattedTime =
+          '${hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      final String formattedDate = widget.selectedDate;
+
+      setState(() {
+        for (var range in widget.updatedData) {
+          DateTime rangeStartDate =
+          DateFormat('dd-MM-yyyy').parse(range['startDate']);
+          DateTime rangeEndDate =
+          DateFormat('dd-MM-yyyy').parse(range['endDate']);
+          DateTime selectedDate =
+          DateFormat('dd-MM-yyyy').parse(formattedDate);
+
+          if ((selectedDate.isAfter(rangeStartDate) &&
+              selectedDate.isBefore(rangeEndDate)) ||
+              selectedDate.isAtSameMomentAs(rangeStartDate) ||
+              selectedDate.isAtSameMomentAs(rangeEndDate)) {
+            for (var entry in range['entries']) {
+              if (entry['selectedDate'] == formattedDate) {
+                final categoryList = entry['categorylist'];
+                if (index < categoryList.length) {
+                  categoryList[index]['time'] = formattedTime; // Update the time
+                }
+                break;
+              }
+            }
+          }
+        }
+      });
+
+      try {
+        for (var range in widget.updatedData) {
+          DateTime rangeStartDate =
+          DateFormat('dd-MM-yyyy').parse(range['startDate']);
+          DateTime rangeEndDate =
+          DateFormat('dd-MM-yyyy').parse(range['endDate']);
+          DateTime selectedDate =
+          DateFormat('dd-MM-yyyy').parse(formattedDate);
+
+          if ((selectedDate.isAfter(rangeStartDate) &&
+              selectedDate.isBefore(rangeEndDate)) ||
+              selectedDate.isAtSameMomentAs(rangeStartDate) ||
+              selectedDate.isAtSameMomentAs(rangeEndDate)) {
+            for (var entry in range['entries']) {
+              if (entry['selectedDate'] == formattedDate) {
+                final categoryList = entry['categorylist'];
+                if (index < categoryList.length) {
+                  final category = categoryList[index]['category'];
+                  final int? categoryId = categoryWithIds[category];
+                  if (categoryId != null) {
+                    final repository = ContractTransactionRepository();
+                    await repository.addCategoryTransaction(
+                      transactionDate: DateFormat('dd-MM-yyyy')
+                          .format(selectedDate),
+                      hours: formattedTime,
+                      categoryId: categoryId,
+                      journal: categoryList[index]['journals'] ?? '',
+                      isLocked: entry['isLocked'].toString(),
+                    );
+                  }
+                }
+                break;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        print('Error adding transaction: $e');
+      }
+
+      // Call the update method to refresh the UI
+      widget.updateTotalDaysAndHours(); // Call function correctly.
+      _fetchCategoryDetails(); // Re-fetch category details after updating the time.
+    }
   }
 
   @override
@@ -148,7 +250,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
           title: InkWell(
             onTap: () {
               if (!isLocked && widget.isPastContract) {
-                widget.selectTime(context, index);
+                _selectTime(context, index);
               }
             },
             child: Row(
@@ -207,4 +309,5 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
       ],
     );
   }
+
 }
