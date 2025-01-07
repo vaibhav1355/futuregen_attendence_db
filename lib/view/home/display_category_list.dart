@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:futurgen_attendance/view/home/show_category_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 import '../../models/contract_transaction_repository.dart';
+import 'journal.dart';
 
 class DisplayCategoryList extends StatefulWidget {
 
@@ -18,17 +20,16 @@ class DisplayCategoryList extends StatefulWidget {
     'Customer Service-General': 10,
   };
 
-  final Function(BuildContext) showCategoryBottomSheet;
+  final Map<String, dynamic> getSelectedDateData;
   final List<Map<String, dynamic>> updatedData;
-  final Function(BuildContext, int, String, String) navigateToJournalScreen;
   final bool isPastContract;
   final String selectedDate;
   final void Function() updateTotalDaysAndHours;
 
+
   DisplayCategoryList({
-    required this.showCategoryBottomSheet,
+    required this.getSelectedDateData,
     required this.updatedData,
-    required this.navigateToJournalScreen,
     required this.isPastContract,
     required this.selectedDate,
     required this.updateTotalDaysAndHours,
@@ -42,19 +43,6 @@ class DisplayCategoryList extends StatefulWidget {
 class _DisplayCategoryListState extends State<DisplayCategoryList> {
 
   List<Map<String, dynamic>> _categoryDetails = [];
-
-  static const Map<String, int> categoryWithIds = {
-    'Admin-General': 1,
-    'Academic-General': 2,
-    'Fundraising-General': 3,
-    'Marketing-General': 4,
-    'Operations-General': 5,
-    'Finance-General': 6,
-    'HR-General': 7,
-    'Research-General': 8,
-    'Event Management-General': 9,
-    'Customer Service-General': 10,
-  };
 
   @override
   void initState() {
@@ -100,82 +88,137 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
     );
 
     if (picked != null) {
-      // Adjust hour to 12 if it is 0 (midnight)
-      int hour = picked.hour == 0 ? 12 : picked.hour;
-      final String formattedTime =
-          '${hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      final int hour = picked.hour == 0 ? 12 : picked.hour;
+      final String formattedTime = '${hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       final String formattedDate = widget.selectedDate;
 
-      setState(() {
-        for (var range in widget.updatedData) {
-          DateTime rangeStartDate =
-          DateFormat('dd-MM-yyyy').parse(range['startDate']);
-          DateTime rangeEndDate =
-          DateFormat('dd-MM-yyyy').parse(range['endDate']);
-          DateTime selectedDate =
-          DateFormat('dd-MM-yyyy').parse(formattedDate);
+      for (var range in widget.updatedData) {
+        DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
+        DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
+        DateTime selectedDate = DateFormat('dd-MM-yyyy').parse(formattedDate);
+        final category = _categoryDetails[index]['category'];
 
-          if ((selectedDate.isAfter(rangeStartDate) &&
-              selectedDate.isBefore(rangeEndDate)) ||
-              selectedDate.isAtSameMomentAs(rangeStartDate) ||
-              selectedDate.isAtSameMomentAs(rangeEndDate)) {
-            for (var entry in range['entries']) {
-              if (entry['selectedDate'] == formattedDate) {
-                final categoryList = entry['categorylist'];
-                if (index < categoryList.length) {
-                  categoryList[index]['time'] = formattedTime; // Update the time
-                }
-                break;
+        // db mein update karne ke liye
+        final repository = ContractTransactionRepository();
+
+        await repository.addCategoryTransaction(
+          transactionDate: formattedDate,
+          hours: formattedTime,
+          categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
+        );
+
+        // list mein update kar diya
+        if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
+            selectedDate.isAtSameMomentAs(rangeStartDate) ||
+            selectedDate.isAtSameMomentAs(rangeEndDate)) {
+
+          for (var entry in range['entries']) {
+            if (entry['selectedDate'] == formattedDate) {
+              final categoryList = entry['categorylist'];
+              if (index < categoryList.length) {
+                categoryList[index]['time'] = formattedTime;
               }
+              break;
             }
           }
         }
-      });
-
-      try {
-        for (var range in widget.updatedData) {
-          DateTime rangeStartDate =
-          DateFormat('dd-MM-yyyy').parse(range['startDate']);
-          DateTime rangeEndDate =
-          DateFormat('dd-MM-yyyy').parse(range['endDate']);
-          DateTime selectedDate =
-          DateFormat('dd-MM-yyyy').parse(formattedDate);
-
-          if ((selectedDate.isAfter(rangeStartDate) &&
-              selectedDate.isBefore(rangeEndDate)) ||
-              selectedDate.isAtSameMomentAs(rangeStartDate) ||
-              selectedDate.isAtSameMomentAs(rangeEndDate)) {
-            for (var entry in range['entries']) {
-              if (entry['selectedDate'] == formattedDate) {
-                final categoryList = entry['categorylist'];
-                if (index < categoryList.length) {
-                  final category = categoryList[index]['category'];
-                  final int? categoryId = categoryWithIds[category];
-                  if (categoryId != null) {
-                    final repository = ContractTransactionRepository();
-                    await repository.addCategoryTransaction(
-                      transactionDate: DateFormat('dd-MM-yyyy')
-                          .format(selectedDate),
-                      hours: formattedTime,
-                      categoryId: categoryId,
-                      journal: categoryList[index]['journals'] ?? '',
-                      isLocked: entry['isLocked'].toString(),
-                    );
-                  }
-                }
-                break;
-              }
-            }
-          }
-        }
-      } catch (e) {
-        print('Error adding transaction: $e');
       }
 
-      // Call the update method to refresh the UI
-      widget.updateTotalDaysAndHours(); // Call function correctly.
-      _fetchCategoryDetails(); // Re-fetch category details after updating the time.
+      setState(() {
+        widget.updateTotalDaysAndHours();
+        _fetchCategoryDetails();
+      });
     }
+  }
+
+  void _navigateToJournalScreen(BuildContext context, int index, String category, String initialJournalText) async {
+    final DateTime selectedDate = DateFormat('dd-MM-yyyy').parse(widget.selectedDate);
+    final formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => JournalScreen(
+          index: index,
+          category: category,
+          initialJournalText: initialJournalText,
+          isPastContract: !widget.isPastContract,
+          onJournalUpdate: (updatedText) async {
+            final repository = ContractTransactionRepository();
+            await repository.addCategoryTransaction(
+              transactionDate: formattedDate,
+              journal: updatedText,
+              categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
+            );
+            //bool entryUpdated = false;
+
+            // for (var dateRange in widget.updatedData) {
+            //   final DateTime startDate = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
+            //   final DateTime endDate = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
+            //
+            //   if ((selectedDate.isAfter(startDate) && selectedDate.isBefore(endDate)) ||
+            //       selectedDate.isAtSameMomentAs(startDate) ||
+            //       selectedDate.isAtSameMomentAs(endDate)) {
+            //     for (var entry in dateRange['entries']) {
+            //       if (entry['selectedDate'] == formattedDate) {
+            //         for (var categoryObj in entry['categorylist']) {
+            //           if (categoryObj['category'] == category) {
+            //             categoryObj['journals'] = updatedText;
+            //
+            //             final repository = ContractTransactionRepository();
+            //             await repository.addCategoryTransaction(
+            //               transactionDate: formattedDate,
+            //               hours: categoryObj['time'] ?? '00:00',
+            //               categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
+            //               journal: updatedText,
+            //               isLocked: entry['isLocked'].toString(),
+            //             );
+            //
+            //             entryUpdated = true;
+            //             break;
+            //           }
+            //         }
+            //       }
+            //       if (entryUpdated) break;
+            //     }
+            //   }
+            //   if (entryUpdated) break;
+            // }
+            //
+            // if (!entryUpdated) {
+            //   final repository = ContractTransactionRepository();
+            //   await repository.addCategoryTransaction(
+            //     transactionDate: formattedDate,
+            //     hours: '00:00',
+            //     categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
+            //     journal: updatedText,
+            //     isLocked: 'false',
+            //   );
+            // }
+            setState(() {
+              _fetchCategoryDetails();
+            });
+          },
+        ),
+      ),
+    );
+  } // fix time
+
+  void _showCategoryBottomSheet(BuildContext context) {
+
+    var selectedDateData = widget.getSelectedDateData;
+    DateTime formattedDate = DateFormat('dd-MM-yyyy').parse(widget.selectedDate);
+
+    CategoryBottomSheet.showCategoryBottomSheet(
+      context: context,
+      selectedDateData: selectedDateData,
+      selectedDate: formattedDate,
+      onCategoryAdded: () async {
+        setState(() {
+          _fetchCategoryDetails();
+        });
+      },
+    );
   }
 
   @override
@@ -208,7 +251,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
             child: InkWell(
               onTap: () {
                 if (!isLocked) {
-                  widget.showCategoryBottomSheet(context);
+                  _showCategoryBottomSheet(context);
                 }
               },
               child: Image.asset(
@@ -280,7 +323,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
           trailing: ElevatedButton(
             onPressed: () {
               if (!isLocked) {
-                widget.navigateToJournalScreen(
+                _navigateToJournalScreen(
                   context,
                   index,
                   item['category'],
@@ -309,5 +352,4 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
       ],
     );
   }
-
 }

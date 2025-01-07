@@ -23,7 +23,6 @@
 //
 // class _HomePageState extends State<HomePage> {
 //
-//
 //   static const Map<String, int> categoryWithIds = {
 //     'Admin-General': 1,
 //     'Academic-General': 2,
@@ -109,8 +108,6 @@
 //   final DateTime currentDate = DateTime.now();
 //   late DateTime selectedDate;
 //
-//   late String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-//
 //   DateTime? minStartDate;
 //   DateTime? maxEndDate;
 //
@@ -126,7 +123,6 @@
 //   bool contractExist = false ;
 //   bool isPastContract = false;
 //   bool isLocked = false;
-//
 //
 //   @override
 //   void initState() {
@@ -259,67 +255,6 @@
 //     }
 //   }
 //
-//   Future<void> _selectTime(BuildContext context, int index) async {
-//     final TimeOfDay? picked = await showTimePicker(
-//       context: context,
-//       initialTime: TimeOfDay(hour: 0, minute: 0),
-//       initialEntryMode: TimePickerEntryMode.dial,
-//     );
-//
-//     if (picked != null) {
-//       setState(() {
-//
-//         int hour = picked.hour;
-//         if (hour == 0) {
-//           hour = 12;
-//         }
-//
-//         final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-//         final String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-//
-//         for (var range in updatedData) {
-//           DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
-//           DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
-//
-//           if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
-//               selectedDate.isAtSameMomentAs(rangeStartDate) ||
-//               selectedDate.isAtSameMomentAs(rangeEndDate)) {
-//             for (var entry in range['entries']) {
-//               if (entry['selectedDate'] == formattedDate) {
-//                 final categoryList = entry['categorylist'];
-//                 if (index < categoryList.length) {
-//                   categoryList[index]['time'] = formattedTime;
-//
-//                   final String category = categoryList[index]['category'];
-//                   final int? categoryId = categoryWithIds[category];
-//
-//                   if (categoryId != null) {
-//                     try {
-//                       final repository = ContractTransactionRepository();
-//                       repository.addCategoryTransaction(
-//                         transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
-//                         hours: formattedTime,
-//                         categoryId: categoryId,
-//                         journal: categoryList[index]['journals'] ?? '',
-//                         isLocked: entry['isLocked'].toString(),
-//                       );
-//                     } catch (e) {
-//                       print('Error adding transaction: $e');
-//                     }
-//                   } else {
-//                     print('Error: Invalid category ID for $category');
-//                   }
-//                   break;
-//                 }
-//               }
-//             }
-//           }
-//         }
-//         updateTotalDaysAndHours();
-//       });
-//     }
-//   }
-//
 //   void _ensureDateExists() {
 //     const dateFormat = 'dd-MM-yyyy';
 //     bool dateExists = true;
@@ -345,7 +280,7 @@
 //                 final repository = ContractTransactionRepository();
 //                 repository.addCategoryTransaction(
 //                   transactionDate: entry['selectedDate'],
-//                   categoryId: categoryWithIds[categoryEntry['category']],
+//                   categoryId: categoryWithIds[categoryEntry['category']] ?? 0,
 //                   journal: categoryEntry['journals'],
 //                   hours: categoryEntry['time'],
 //                   isLocked: entry['isLocked'].toString(),
@@ -368,21 +303,21 @@
 //           final repository = new ContractTransactionRepository();
 //           repository.addCategoryTransaction(
 //             transactionDate: DateFormat(dateFormat).format(selectedDate),
-//             categoryId: categoryWithIds['Admin-General'],
+//             categoryId: categoryWithIds['Admin-General'] ?? 0,
 //             journal: '',
 //             hours: '00:00',
 //             isLocked: 'false',
 //           );
 //           repository.addCategoryTransaction(
 //             transactionDate: DateFormat(dateFormat).format(selectedDate),
-//             categoryId: categoryWithIds['Academic-General'],
+//             categoryId: categoryWithIds['Academic-General'] ?? 0,
 //             journal: '',
 //             hours: '00:00',
 //             isLocked: 'false',
 //           );
 //           repository.addCategoryTransaction(
 //             transactionDate: DateFormat(dateFormat).format(selectedDate),
-//             categoryId: categoryWithIds['Fundraising-General'],
+//             categoryId: categoryWithIds['Fundraising-General'] ?? 0,
 //             journal: '',
 //             hours: '00:00',
 //             isLocked: 'false',
@@ -416,32 +351,32 @@
 //           'endDate': formattedDate,
 //           'entries': [],
 //         });
-//         try {
-//           final repository = ContractTransactionRepository();
-//           repository.addCategoryTransaction(
-//             transactionDate: formattedDate,
-//             categoryId: categoryWithIds['Admin-General'],
-//             hours: '00:00',
-//             isLocked: 'false',
-//             journal: '',
-//           );
-//           repository.addCategoryTransaction(
-//             transactionDate: formattedDate,
-//             categoryId: categoryWithIds['Academic-General'],
-//             hours: '00:00',
-//             isLocked: 'false',
-//             journal: '',
-//           );
-//           repository.addCategoryTransaction(
-//             transactionDate: formattedDate,
-//             categoryId: categoryWithIds['Fundraising-General'],
-//             hours: '00:00',
-//             isLocked: 'false',
-//             journal: '',
-//           );
-//         } catch (e) {
-//           print('Error adding category transaction: $e');
-//         }
+//         // try {
+//         //   final repository = ContractTransactionRepository();
+//         //   repository.addCategoryTransaction(
+//         //     transactionDate: formattedDate,
+//         //     categoryId: categoryWithIds['Admin-General'] ?? 0,
+//         //     hours: '00:00',
+//         //     isLocked: 'false',
+//         //     journal: '',
+//         //   );
+//         //   repository.addCategoryTransaction(
+//         //     transactionDate: formattedDate,
+//         //     categoryId: categoryWithIds['Academic-General'] ?? 0,
+//         //     hours: '00:00',
+//         //     isLocked: 'false',
+//         //     journal: '',
+//         //   );
+//         //   repository.addCategoryTransaction(
+//         //     transactionDate: formattedDate,
+//         //     categoryId: categoryWithIds['Fundraising-General'] ?? 0,
+//         //     hours: '00:00',
+//         //     isLocked: 'false',
+//         //     journal: '',
+//         //   );
+//         // } catch (e) {
+//         //   print('Error adding category transaction: $e');
+//         // }
 //         return updatedData.last;
 //       },
 //     );
@@ -459,109 +394,33 @@
 //           ],
 //         };
 //         entry['entries'].add(newEntry);
-//         const dateFormat = 'dd-MM-yyyy';
-//         final repository = new ContractTransactionRepository();
-//         repository.addCategoryTransaction(
-//           transactionDate: DateFormat(dateFormat).format(selectedDate),
-//           categoryId: categoryWithIds['Admin-General'],
-//           journal: '',
-//           hours: '00:00',
-//           isLocked: 'false',
-//         );
-//         repository.addCategoryTransaction(
-//           transactionDate: DateFormat(dateFormat).format(selectedDate),
-//           categoryId: categoryWithIds['Academic-General'],
-//           journal: '',
-//           hours: '00:00',
-//           isLocked: 'false',
-//         );
-//         repository.addCategoryTransaction(
-//           transactionDate: DateFormat(dateFormat).format(selectedDate),
-//           categoryId: categoryWithIds['Fundraising-General'],
-//           journal: '',
-//           hours: '00:00',
-//           isLocked: 'false',
-//         );
+//         // const dateFormat = 'dd-MM-yyyy';
+//         // final repository = new ContractTransactionRepository();
+//         // repository.addCategoryTransaction(
+//         //   transactionDate: DateFormat(dateFormat).format(selectedDate),
+//         //   categoryId: categoryWithIds['Admin-General'] ?? 0,
+//         //   journal: '',
+//         //   hours: '00:00',
+//         //   isLocked: 'false',
+//         // );
+//         // repository.addCategoryTransaction(
+//         //   transactionDate: DateFormat(dateFormat).format(selectedDate),
+//         //   categoryId: categoryWithIds['Academic-General'] ?? 0,
+//         //   journal: '',
+//         //   hours: '00:00',
+//         //   isLocked: 'false',
+//         // );
+//         // repository.addCategoryTransaction(
+//         //   transactionDate: DateFormat(dateFormat).format(selectedDate),
+//         //   categoryId: categoryWithIds['Fundraising-General'] ?? 0,
+//         //   journal: '',
+//         //   hours: '00:00',
+//         //   isLocked: 'false',
+//         // );
 //         return newEntry;
 //       },
 //     );
 //   }
-//
-//   void _navigateToJournalScreen(BuildContext context, int index, String category, String initialJournalText) async {
-//     final result = await Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => JournalScreen(
-//           index: index,
-//           category: category,
-//           initialJournalText: initialJournalText,
-//           isPastContract: !isPastContract,
-//           onJournalUpdate: (updatedText) {
-//             setState(() {
-//               bool isDateFound = false;
-//               for (var dateRange in updatedData) {
-//                 final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
-//                 final DateTime endDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
-//
-//                 if ((startDateTime.isBefore(selectedDate) ||
-//                     startDateTime.isAtSameMomentAs(selectedDate)) &&
-//                     (endDateTime.isAfter(selectedDate) ||
-//                         endDateTime.isAtSameMomentAs(selectedDate))) {
-//                   for (var entry in dateRange['entries']) {
-//                     if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDate)) {
-//                       isDateFound = true;
-//
-//                       for (var categoryObj in entry['categorylist']) {
-//                         if (categoryObj['category'] == category) {
-//                           categoryObj['journals'] = updatedText;
-//                           final repository = ContractTransactionRepository();
-//                           repository.addCategoryTransaction(
-//                             transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
-//                             hours: entry['categorylist'][index]['time'],
-//                             categoryId: categoryWithIds[category] ?? 0,
-//                             journal: updatedText,
-//                             isLocked: 'false',
-//                           );
-//                           break;
-//                         }
-//                       }
-//                       break;
-//                     }
-//                   }
-//                 }
-//               }
-//               if (!isDateFound) {
-//                 final repository = ContractTransactionRepository();
-//                 repository.addCategoryTransaction(
-//                   transactionDate: DateFormat('dd-MM-yyyy').format(selectedDate),
-//                   categoryId: categoryWithIds[category] ?? 0,
-//                   journal: updatedText,
-//                   isLocked: isLocked ? 'true' : 'false',
-//                 );
-//               }
-//               CategoryService.fetchCategoryDetails(formattedDate);
-//             });
-//           },
-//         ),
-//       ),
-//     );
-//   }
-//
-//   void _showCategoryBottomSheet(BuildContext context) {
-//     var selectedDateData = _getSelectedDateData();
-//
-//     CategoryBottomSheet.showCategoryBottomSheet(
-//       context: context,
-//       selectedDateData: selectedDateData,
-//       selectedDate: selectedDate,
-//       onCategoryAdded: () {
-//         setState(() {
-//
-//         });
-//       },
-//     );
-//   }
-//
 //
 //   @override
 //
@@ -607,7 +466,7 @@
 //                   },
 //                 ),
 //                 InkWell(
-//                   onTap: () =>_selectDate(context),
+//                   onTap: () => _selectDate(context),
 //                   child: Text(
 //                     DateFormat('EEE, dd MMM yyyy').format(selectedDate),
 //                     style: TextStyle(
@@ -638,11 +497,11 @@
 //           if(contractExist) ...[
 //             SizedBoxHeight10,
 //             DisplayCategoryList(
-//               showCategoryBottomSheet: _showCategoryBottomSheet,
-//               selectTime: _selectTime,
-//               navigateToJournalScreen: _navigateToJournalScreen,
 //               isPastContract: isPastContract,
 //               selectedDate: DateFormat('dd-MM-yyyy').format(selectedDate).toString(),
+//               updatedData: updatedData,
+//               updateTotalDaysAndHours: updateTotalDaysAndHours,
+//               getSelectedDateData: _getSelectedDateData(),
 //             ),
 //             if(isPastContract) LockAndSaving(
 //               selectedDateData: _getSelectedDateData(),

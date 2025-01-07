@@ -7,8 +7,8 @@ class ContractTransactionRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   Future<void> addCategoryTransaction({
-    String? transactionDate,
-    int? categoryId,
+    required String transactionDate,
+    required int categoryId,
     String? journal,
     String? isLocked,
     String? hours,
@@ -23,12 +23,14 @@ class ContractTransactionRepository {
       );
 
       if (existingEntries.isNotEmpty) {
+        final existingEntry = existingEntries.first;
+
         await dbClient.update(
           DatabaseHelper.contractTransaction,
           {
-            DatabaseHelper.journal: journal,
-            DatabaseHelper.isLock: isLocked,
-            DatabaseHelper.hours: hours,
+            if (journal != null) DatabaseHelper.journal: journal,
+            if (isLocked != null) DatabaseHelper.isLock: isLocked,
+            if (hours != null) DatabaseHelper.hours: hours,
             DatabaseHelper.dateSubmitted: DateTime.now().toIso8601String(),
           },
           where: '${DatabaseHelper.transactionDate} = ? AND ${DatabaseHelper.categoryId} = ?',
@@ -38,11 +40,11 @@ class ContractTransactionRepository {
         await dbClient.insert(DatabaseHelper.contractTransaction, {
           DatabaseHelper.transactionDate: transactionDate,
           DatabaseHelper.categoryId: categoryId,
-          DatabaseHelper.journal: journal,
+          DatabaseHelper.journal: journal ?? '',
           DatabaseHelper.dateSubmitted: DateTime.now().toIso8601String(),
           DatabaseHelper.submittedBy: 1,
-          DatabaseHelper.isLock: isLocked,
-          DatabaseHelper.hours: hours,
+          DatabaseHelper.isLock: isLocked ?? 'false',
+          DatabaseHelper.hours: hours ?? '00:00',
           DatabaseHelper.finalSubmit: '',
           DatabaseHelper.contractId: 1,
           DatabaseHelper.syncStatus: 0,
@@ -53,6 +55,8 @@ class ContractTransactionRepository {
       print('Error in addCategoryTransaction: $e');
     }
   }
+
+
 
   Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transactionDate) async {
     final dbClient = await _dbHelper.database;
@@ -73,6 +77,42 @@ class ContractTransactionRepository {
       return [];
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchCategoryStartDateEndDate(
+      String startDate,
+      String endDate,
+      ) async {
+    final dbClient = await _dbHelper.database;
+
+    try {
+      print('Fetching category data for range: $startDate to $endDate');
+
+      final queryCondition = startDate == endDate
+          ? '${DatabaseHelper.transactionDate} = ?'
+          : '${DatabaseHelper.transactionDate} BETWEEN ? AND ?';
+
+      final queryArgs = startDate == endDate ? [startDate] : [startDate, endDate];
+
+      final result = await dbClient.query(
+        DatabaseHelper.contractTransaction,
+        columns: [
+          DatabaseHelper.transactionDate,
+          DatabaseHelper.categoryId,
+          DatabaseHelper.hours,
+        ],
+        where: queryCondition,
+        whereArgs: queryArgs,
+      );
+
+      print('Fetched data: $result');
+      return result;
+    } catch (e) {
+      print('Error fetching categories: $e');
+      return [];
+    }
+  }
+
+
 
   Future<void> lockTransactionsByDate({
     required String transactionDate,

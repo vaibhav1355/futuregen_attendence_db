@@ -3,8 +3,8 @@ import 'package:intl/intl.dart';
 
 import '../../models/contract_transaction_repository.dart';
 
-class CategoryBottomSheet {
 
+class CategoryBottomSheet {
   static const List<String> categories = [
     'Admin-General',
     'Academic-General',
@@ -35,14 +35,19 @@ class CategoryBottomSheet {
     required BuildContext context,
     required Map<String, dynamic> selectedDateData,
     required VoidCallback onCategoryAdded,
-    required selectedDate,
-
-  }) {
+    required DateTime selectedDate,
+  }) async {
     Map<String, bool> checkboxStates = {};
+    final repository = ContractTransactionRepository();
 
-    selectedDateData['categorylist'].forEach((item) {
-      checkboxStates[item['category']] = true;
-    });
+    String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+    List<Map<String, dynamic>> existingCategories =
+    await repository.fetchCategoryDetailsByDate(formattedDate);
+
+    for (var category in categories) {
+      checkboxStates[category] = existingCategories.any((entry) =>
+      entry['categoryId'] == categoryWithIds[category] && entry['isLock'] == 'false');
+    }
 
     showModalBottomSheet(
       context: context,
@@ -50,19 +55,17 @@ class CategoryBottomSheet {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Padding(
-              padding: EdgeInsets.all(4.0),
+              padding: const EdgeInsets.all(4.0),
               child: Column(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: Padding(
+                          onTap: () => Navigator.pop(context),
+                          child: const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
                               'Cancel',
@@ -75,20 +78,20 @@ class CategoryBottomSheet {
                           ),
                         ),
                         InkWell(
-                          onTap: () {
-                            categories.forEach((category) async {
+                          onTap: () async {
+                            for (var category in categories) {
                               if (checkboxStates[category] == true) {
-                                bool isAlreadySelected = selectedDateData['categorylist']
-                                    .any((item) => item['category'] == category);
+                                bool isAlreadySelected = existingCategories.any((entry) =>
+                                entry['categoryId'] == categoryWithIds[category]);
+
                                 if (!isAlreadySelected) {
                                   selectedDateData['categorylist'].add({
                                     'category': category,
                                     'time': '00:00',
                                     'journals': '',
                                   });
-                                  String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-                                  final repository = new ContractTransactionRepository();
-                                  repository.addCategoryTransaction(
+
+                                  await repository.addCategoryTransaction(
                                     categoryId: categoryWithIds[category] ?? 0,
                                     transactionDate: formattedDate,
                                     hours: '00:00',
@@ -97,11 +100,11 @@ class CategoryBottomSheet {
                                   );
                                 }
                               }
-                            });
+                            }
                             onCategoryAdded();
                             Navigator.pop(context);
                           },
-                          child: Padding(
+                          child: const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
                               'Add Category',
@@ -116,7 +119,7 @@ class CategoryBottomSheet {
                       ],
                     ),
                   ),
-                  Divider(),
+                  const Divider(),
                   Expanded(
                     child: ListView.builder(
                       itemCount: categories.length,
@@ -124,24 +127,30 @@ class CategoryBottomSheet {
                         String category = categories[index];
                         bool isChecked = checkboxStates[category] ?? false;
 
-                        bool isAlreadySelected = selectedDateData['categorylist']
-                            .any((item) => item['category'] == category);
-
                         return Column(
                           children: [
                             CheckboxListTile(
-                              title: Text(category),
+                              title: Text(
+                                category,
+                                style: TextStyle(
+                                  color: existingCategories.any((entry) =>
+                                  entry['categoryId'] == categoryWithIds[category])
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
+                              ),
                               value: isChecked,
-                              onChanged: (bool? value) {
+                              onChanged: existingCategories.any((entry) =>
+                              entry['categoryId'] == categoryWithIds[category])
+                                  ? null
+                                  : (bool? value) {
                                 setState(() {
-                                  if (isAlreadySelected && !(value ?? false)) {
-                                    return;
-                                  }
                                   checkboxStates[category] = value ?? false;
                                 });
                               },
                               controlAffinity: ListTileControlAffinity.leading,
                             ),
+
                             Divider(),
                           ],
                         );

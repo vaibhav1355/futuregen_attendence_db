@@ -22,24 +22,24 @@ class JournalScreen extends StatefulWidget {
 
 class _JournalScreenState extends State<JournalScreen> {
   late TextEditingController _journalController;
-
-  final contractTransaction = ContractTransactionRepository();
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _journalController = TextEditingController(text: widget.initialJournalText);
+    _focusNode = FocusNode();
     _journalController.addListener(_saveJournalText);
   }
 
   Future<void> _saveJournalText() async {
     final updatedText = _journalController.text;
     widget.onJournalUpdate(updatedText);
-
   }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _journalController.removeListener(_saveJournalText);
     _journalController.dispose();
     super.dispose();
@@ -51,27 +51,33 @@ class _JournalScreenState extends State<JournalScreen> {
       appBar: AppBar(
         title: Text("Journal - ${widget.category}"),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 16),
-            TextField(
-              controller: _journalController,
-              enabled: !widget.isPastContract,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: "Enter your journal entry here...",
-                border: InputBorder.none,
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+          print("Tapped outside");
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16),
+              TextField(
+                controller: _journalController,
+                focusNode: _focusNode,
+                enabled: !widget.isPastContract,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: "Enter your journal entry here...",
+                  border: InputBorder.none,
+                ),
+                maxLines: null,
               ),
-              maxLines: null,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-
