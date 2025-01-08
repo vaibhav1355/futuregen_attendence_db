@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
     updateTotalDaysAndHours();
     _checkContractExistence();
     _pastContract();
-
+    //_ensureDateExists();
   }
 
   void updateTotalDaysAndHours() async {
@@ -104,11 +104,9 @@ class _HomePageState extends State<HomePage> {
 
     try {
       for (var range in updatedData) {
-        // Parse start and end dates of the range
         DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
         DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
 
-        // Fetch data from the database for the current range
         List<Map<String, dynamic>> categoryData = await ContractTransactionRepository().fetchCategoryStartDateEndDate(
           range['startDate'],
           range['endDate'],
@@ -484,30 +482,30 @@ class _HomePageState extends State<HomePage> {
               getSelectedDateData: _getSelectedDateData(),
             ),
             if(isPastContract) LockAndSaving(
-              selectedDateData: _getSelectedDateData(),
+              selectedDate: selectedDate,
               onSave: () {
                 String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
                 print("Data saved for $formattedDate");
               },
               onLock: () {
-                final DateTime selectedDateTime = selectedDate;
-                final String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDateTime);
                 setState(() {
+                  final String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+
                   for (var dateRange in updatedData) {
                     final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
                     final DateTime endDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
 
-                    if (startDateTime.isBefore(selectedDateTime) || startDateTime.isAtSameMomentAs(selectedDateTime)) {
-                      if (endDateTime.isAfter(selectedDateTime) || endDateTime.isAtSameMomentAs(selectedDateTime)) {
+                    if (startDateTime.isBefore(selectedDate) || startDateTime.isAtSameMomentAs(selectedDate)) {
+                      if (endDateTime.isAfter(selectedDate) || endDateTime.isAtSameMomentAs(selectedDate)) {
                         for (var entry in dateRange['entries']) {
-                          if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDateTime)) {
+                          if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDate)) {
                             entry['isLocked'] = true;
-                            isLocked = true;
                           }
                         }
                       }
                     }
                   }
+
                   final repository = ContractTransactionRepository();
                   repository.lockTransactionsByDate(
                     transactionDate: transactionDate,

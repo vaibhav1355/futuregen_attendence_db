@@ -4,9 +4,11 @@
 // import 'package:futurgen_attendance/view/home/journal.dart';
 // import 'package:futurgen_attendance/view/home/show_category_bottom_sheet.dart';
 // import 'package:intl/intl.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 //
 // import '../../Constants/constants.dart';
 // import '../../models/contract_transaction_repository.dart';
+// import '../../models/db_helper.dart';
 // import 'category_service.dart';
 // import 'display_category_list.dart';
 // import 'locking_and_saving.dart';
@@ -47,30 +49,11 @@
 //       "leftMinutes" : 0,
 //       "pastContract": false,
 //       "entries": [
-//         {
-//           "selectedDate": "11-12-2024",
-//           "isLocked": false,
-//           "categorylist": [
-//             {'category': 'Admin-General', 'time': '2:00', 'journals': 'yeh pehla se likha hoya h Sir Ji '},
-//             {'category': 'Academic-General', 'time': '2:00', 'journals': 'systummmmm '},
-//             {'category': 'Customer Service-General', 'time': '2:00', 'journals': 'jai baba ki'},
-//             {'category': 'Marketing-General', 'time': '2:00', 'journals': ''},
-//           ],
-//         },
-//         {
-//           "selectedDate": "12-12-2024",
-//           "isLocked": false,
-//           "categorylist": [
-//             {'category': 'Admin-General', 'time': '01:55', 'journals': 'yeh pehla se likha hoya h Sir Ji'},
-//             {'category': 'Academic-General', 'time': '01:00', 'journals': 'systummmmm'},
-//             {'category': 'Customer Service-General', 'time': '01:00', 'journals': 'JAI SHREE RAM!'},
-//             {'category': 'Marketing-General', 'time': '01:00', 'journals': 'systummmm!!'},
-//           ],
-//         },
+//
 //       ],
 //     },
 //     {
-//       "startDate": "20-12-2024",
+//       "startDate": "01-01-2025",
 //       "endDate": "10-01-2025",
 //       "totalDays": 0,
 //       "leftDays" : 0.0,
@@ -79,26 +62,7 @@
 //       "leftMinutes" : 0,
 //       "pastContract": false,
 //       "entries": [
-//         {
-//           "selectedDate": "31-12-2024",
-//           "isLocked": false,
-//           "categorylist": [
-//             {'category': 'Admin-General', 'time': '02:25', 'journals': ''},
-//             {'category': 'Academic-General', 'time': '02:15', 'journals': ''},
-//             {'category': 'Customer Service-General', 'time': '01:15', 'journals': ''},
-//             {'category': 'Marketing-General', 'time': '01:20', 'journals': ''},
-//           ],
-//         },
-//         {
-//           "selectedDate": "30-12-2024",
-//           "isLocked": false,
-//           "categorylist": [
-//             {'category': 'Admin-General', 'time': '01:15', 'journals': ''},
-//             {'category': 'Academic-General', 'time': '01:20', 'journals': ''},
-//             {'category': 'Customer Service-General', 'time': '01:20', 'journals': ''},
-//             {'category': 'Marketing-General', 'time': '01:45', 'journals': ''},
-//           ],
-//         },
+//
 //       ],
 //     },
 //   ];
@@ -123,6 +87,7 @@
 //   bool contractExist = false ;
 //   bool isPastContract = false;
 //   bool isLocked = false;
+//   static bool hasEnsuredDateExists = false;
 //
 //   @override
 //   void initState() {
@@ -130,25 +95,40 @@
 //     selectedDate = DateTime(currentDate.year, currentDate.month, currentDate.day);
 //     _calculateMinAndMaxDates();
 //     updateTotalDaysAndHours();
-//     _ensureDateExists();
+//     _checkContractExistence();
 //     _pastContract();
+//     // _ensureDateExists();
+//     // if(!hasEnsuredDateExists){
+//     //   _ensureDateExists();
+//     // }
 //   }
 //
-//   void updateTotalDaysAndHours() {
+//   void updateTotalDaysAndHours() async {
 //     int _daysBetween(DateTime start, DateTime end) => end.difference(start).inDays;
+//
 //     try {
 //       for (var range in updatedData) {
+//         // Parse start and end dates of the range
 //         DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
 //         DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
 //
+//         // Fetch data from the database for the current range
+//         List<Map<String, dynamic>> categoryData = await ContractTransactionRepository().fetchCategoryStartDateEndDate(
+//           range['startDate'],
+//           range['endDate'],
+//         );
+//
 //         int totalUsedMinutes = 0;
 //
-//         for (var entry in range['entries']) {
-//           for (var item in entry['categorylist']) {
-//             final timeParts = item['time'].split(':');
+//         for (var entry in categoryData) {
+//           if (entry[DatabaseHelper.hours] != null) {
+//             final timeParts = entry[DatabaseHelper.hours].toString().split(':');
 //             if (timeParts.length == 2) {
-//               totalUsedMinutes += (int.tryParse(timeParts[0]) ?? 0) * 60;
-//               totalUsedMinutes += int.tryParse(timeParts[1]) ?? 0;
+//               int hours = int.tryParse(timeParts[0]) ?? 0;
+//               int minutes = int.tryParse(timeParts[1]) ?? 0;
+//               totalUsedMinutes += (hours * 60) + minutes;
+//             } else {
+//               print('Invalid time format: ${entry[DatabaseHelper.hours]}');
 //             }
 //           }
 //         }
@@ -157,29 +137,28 @@
 //         totalUsedMinutes %= 60;
 //
 //         int rangeDays = _daysBetween(rangeStartDate, rangeEndDate) + 1;
-//
-//         int rangeTotalMinutes = rangeDays * 8 * 60;
-//         int remainingMinutes = rangeTotalMinutes - ((totalUsedHours * 60)+ totalUsedMinutes);
-//
-//         double remainingHours = remainingMinutes / 60.0;
+//         int rangeTotalMinutes = rangeDays * 8 * 60; // Assuming 8 hours/day
+//         int remainingMinutes = rangeTotalMinutes - (totalUsedHours * 60 + totalUsedMinutes);
 //
 //         setState(() {
 //           range['totalDays'] = rangeDays;
 //           range['totalHours'] = rangeTotalMinutes ~/ 60;
-//           range['leftHours'] = remainingHours.floor();
+//           range['leftHours'] = remainingMinutes ~/ 60;
 //           range['leftMinutes'] = remainingMinutes % 60;
-//           range['leftDays'] = double.parse((remainingHours / 8.0).toStringAsFixed(2));
+//           range['leftDays'] = double.parse(((remainingMinutes / 60.0) / 8.0).toStringAsFixed(2));
 //         });
-//
 //       }
+//
+//       // Check if the selected date falls in any range
 //       bool dateInRange = false;
 //
 //       for (var range in updatedData) {
 //         DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
 //         DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
 //
-//         if (selectedDate.isAfter(rangeStartDate) &&
-//             selectedDate.isBefore(rangeEndDate) || selectedDate.isAtSameMomentAs(rangeEndDate) || selectedDate.isAtSameMomentAs(rangeStartDate)) {
+//         if (selectedDate.isAtSameMomentAs(rangeStartDate) ||
+//             selectedDate.isAtSameMomentAs(rangeEndDate) ||
+//             (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate))) {
 //           dateInRange = true;
 //
 //           setState(() {
@@ -189,9 +168,12 @@
 //             leftMinutes = range['leftMinutes'];
 //             leftDays = range['leftDays'];
 //           });
+//           break; // Exit the loop as we've found the range
 //         }
 //       }
+//
 //       if (!dateInRange) {
+//         // Reset totals if no range contains the selected date
 //         setState(() {
 //           totalDays = 0;
 //           totalHours = 0;
@@ -200,8 +182,9 @@
 //           leftDays = 0.0;
 //         });
 //       }
-//     } catch (e) {
+//     } catch (e, stackTrace) {
 //       print('Error in updateTotalDaysAndHours: $e');
+//       print('Stack trace: $stackTrace');
 //     }
 //   }
 //
@@ -248,90 +231,93 @@
 //     if (picked != null && picked != selectedDate) {
 //       setState(() {
 //         selectedDate = picked;
-//         _ensureDateExists();
+//         _checkContractExistence();
 //         updateTotalDaysAndHours();
 //         _pastContract();
 //       });
 //     }
 //   }
 //
+//   void _checkContractExistence() {
+//     final DateFormat dateFormat = DateFormat("dd-MM-yyyy");
+//
+//     bool dateExistsInAnyRange = false;
+//
+//     for (var range in updatedData) {
+//       DateTime rangeStartDate = dateFormat.parse(range['startDate']);
+//       DateTime rangeEndDate = dateFormat.parse(range['endDate']);
+//
+//       if (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate) ||
+//           selectedDate.isAtSameMomentAs(rangeStartDate) ||
+//           selectedDate.isAtSameMomentAs(rangeEndDate)) {
+//         dateExistsInAnyRange = true;
+//         break;
+//       }
+//     }
+//
+//     setState(() {
+//       contractExist = dateExistsInAnyRange;
+//     });
+//   }
+//
 //   void _ensureDateExists() {
 //     const dateFormat = 'dd-MM-yyyy';
-//     bool dateExists = true;
 //
 //     for (var range in updatedData) {
 //       DateTime rangeStartDate = DateFormat(dateFormat).parse(range['startDate']);
 //       DateTime rangeEndDate = DateFormat(dateFormat).parse(range['endDate']);
 //
-//       if (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate) ||
-//           selectedDate.isAtSameMomentAs(rangeStartDate) || selectedDate.isAtSameMomentAs(rangeEndDate)) {
+//       for (DateTime date = rangeStartDate;
+//       !date.isAfter(rangeEndDate);
+//       date = date.add(Duration(days: 1))) {
+//         String formattedDate = DateFormat(dateFormat).format(date);
 //
-//         if (range['entries'] is! List) {
-//           range['entries'] = [];
-//         }
+//         bool dateExists = range['entries'].any((entry) => entry['selectedDate'] == formattedDate);
 //
-//         bool dataExists = range['entries'].any((entry) =>
-//         entry['selectedDate'] == DateFormat(dateFormat).format(selectedDate));
-//
-//         if (dataExists) {
-//           for (var entry in range['entries']) {
-//             if (entry['selectedDate'] == DateFormat(dateFormat).format(selectedDate)) {
-//               for (var categoryEntry in entry['categorylist']) {
-//                 final repository = ContractTransactionRepository();
-//                 repository.addCategoryTransaction(
-//                   transactionDate: entry['selectedDate'],
-//                   categoryId: categoryWithIds[categoryEntry['category']] ?? 0,
-//                   journal: categoryEntry['journals'],
-//                   hours: categoryEntry['time'],
-//                   isLocked: entry['isLocked'].toString(),
-//                 );
-//               }
-//             }
-//           }
-//         }
-//
-//         if (!dataExists) {
-//           range['entries'].add({
-//             'selectedDate': DateFormat(dateFormat).format(selectedDate),
+//         if (!dateExists) {
+//           var newEntry = {
+//             'selectedDate': formattedDate,
 //             'isLocked': false,
 //             'categorylist': [
 //               {'category': 'Admin-General', 'time': '0:00', 'journals': ''},
 //               {'category': 'Academic-General', 'time': '0:00', 'journals': ''},
 //               {'category': 'Fundraising-General', 'time': '0:00', 'journals': ''},
 //             ],
-//           });
-//           final repository = new ContractTransactionRepository();
-//           repository.addCategoryTransaction(
-//             transactionDate: DateFormat(dateFormat).format(selectedDate),
-//             categoryId: categoryWithIds['Admin-General'] ?? 0,
-//             journal: '',
-//             hours: '00:00',
-//             isLocked: 'false',
-//           );
-//           repository.addCategoryTransaction(
-//             transactionDate: DateFormat(dateFormat).format(selectedDate),
-//             categoryId: categoryWithIds['Academic-General'] ?? 0,
-//             journal: '',
-//             hours: '00:00',
-//             isLocked: 'false',
-//           );
-//           repository.addCategoryTransaction(
-//             transactionDate: DateFormat(dateFormat).format(selectedDate),
-//             categoryId: categoryWithIds['Fundraising-General'] ?? 0,
-//             journal: '',
-//             hours: '00:00',
-//             isLocked: 'false',
-//           );
+//           };
+//
+//           range['entries'].add(newEntry);
+//
+//           try {
+//             final repository = ContractTransactionRepository();
+//             repository.addCategoryTransaction(
+//               transactionDate: formattedDate,
+//               categoryId: categoryWithIds['Admin-General'] ?? 0,
+//               journal: '',
+//               hours: '0:00',
+//               isLocked: 'false',
+//             );
+//             repository.addCategoryTransaction(
+//               transactionDate: formattedDate,
+//               categoryId: categoryWithIds['Academic-General'] ?? 0,
+//               journal: '',
+//               hours: '0:00',
+//               isLocked: 'false',
+//             );
+//             repository.addCategoryTransaction(
+//               transactionDate: formattedDate,
+//               categoryId: categoryWithIds['Fundraising-General'] ?? 0,
+//               journal: '',
+//               hours: '0:00',
+//               isLocked: 'false',
+//             );
+//           } catch (e) {
+//             print('Error adding category transaction for $formattedDate: $e');
+//           }
 //         }
-//         dateExists = false;
-//         break;
 //       }
 //     }
-//
-//     setState(() {
-//       contractExist = !dateExists;
-//     });
 //   }
+//
 //
 //   Map<String, dynamic> _getSelectedDateData() {
 //     String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
@@ -425,7 +411,6 @@
 //   @override
 //
 //   Widget build(BuildContext context) {
-//
 //     return Scaffold(
 //       key: _scaffoldKey,
 //       appBar: AppBar(
@@ -458,7 +443,7 @@
 //                     setState(() {
 //                       if (selectedDate.isAfter(minStartDate!)) {
 //                         selectedDate = selectedDate.subtract(Duration(days: 1));
-//                         _ensureDateExists();
+//                         _checkContractExistence();
 //                         updateTotalDaysAndHours();
 //                         _pastContract();
 //                       }
@@ -483,7 +468,7 @@
 //                       if (selectedDate.add(Duration(days: 1)).isBefore(
 //                           DateTime(currentDate.year, currentDate.month, currentDate.day + 1))) {
 //                         selectedDate = selectedDate.add(Duration(days: 1));
-//                         _ensureDateExists();
+//                         _checkContractExistence();
 //                         updateTotalDaysAndHours();
 //                         _pastContract();
 //                       }

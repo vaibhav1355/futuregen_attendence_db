@@ -57,7 +57,6 @@ class ContractTransactionRepository {
   }
 
 
-
   Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transactionDate) async {
     final dbClient = await _dbHelper.database;
     try {
@@ -85,7 +84,6 @@ class ContractTransactionRepository {
     final dbClient = await _dbHelper.database;
 
     try {
-      print('Fetching category data for range: $startDate to $endDate');
 
       final queryCondition = startDate == endDate
           ? '${DatabaseHelper.transactionDate} = ?'
@@ -103,8 +101,6 @@ class ContractTransactionRepository {
         where: queryCondition,
         whereArgs: queryArgs,
       );
-
-      print('Fetched data: $result');
       return result;
     } catch (e) {
       print('Error fetching categories: $e');
@@ -113,6 +109,26 @@ class ContractTransactionRepository {
   }
 
 
+  Future<bool> fetchLockStatus(String transactionDate) async {
+    final dbClient = await _dbHelper.database;
+    try {
+      final categoryDetails = await dbClient.query(
+        DatabaseHelper.contractTransaction,
+        columns: [DatabaseHelper.isLock],
+        where: '${DatabaseHelper.transactionDate} = ?',
+        whereArgs: [transactionDate],
+      );
+
+      if (categoryDetails.isNotEmpty) {
+        final isLockedString = categoryDetails.first[DatabaseHelper.isLock] as String;
+        return isLockedString.toLowerCase() == 'true';
+      }
+      return false;
+    } catch (e) {
+      print('Error fetching lock status: $e');
+      return false;
+    }
+  }
 
   Future<void> lockTransactionsByDate({
     required String transactionDate,
@@ -129,4 +145,5 @@ class ContractTransactionRepository {
       print('Error in lockTransactionsByDate: $e');
     }
   }
+
 }

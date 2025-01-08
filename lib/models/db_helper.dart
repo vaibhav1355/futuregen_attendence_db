@@ -100,12 +100,6 @@ class DatabaseHelper {
     print("ContractTransaction Table Created.");
   }
 
-  // Future<void> printCategoryTable() async {
-  //   final dbClient = await database;
-  //   final List<Map<String, dynamic>> categoryData = await dbClient.query(category);
-  //   print("Category Table Data:");
-  //   categoryData.forEach((row) => print(row));
-  // }
 
   Future<void> printContractTransactionTable() async {
     final dbClient = await database;

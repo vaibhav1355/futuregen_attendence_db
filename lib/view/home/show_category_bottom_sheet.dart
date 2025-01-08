@@ -55,7 +55,7 @@ class CategoryBottomSheet {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Padding(
-              padding: const EdgeInsets.all(4.0),
+              padding: EdgeInsets.all(4.0),
               child: Column(
                 children: [
                   Padding(
@@ -119,7 +119,7 @@ class CategoryBottomSheet {
                       ],
                     ),
                   ),
-                  const Divider(),
+                  Divider(),
                   Expanded(
                     child: ListView.builder(
                       itemCount: categories.length,
