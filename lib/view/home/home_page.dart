@@ -39,8 +39,8 @@ class _HomePageState extends State<HomePage> {
 
   final List<Map<String, dynamic>> updatedData = [
     {
-      "startDate": "10-12-2024",
-      "endDate": "13-12-2024",
+      "startDate": "20-12-2024",
+      "endDate": "23-12-2024",
       "totalDays": 0,
       "leftDays" : 0.0,
       "totalHours": 0,
@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
     },
     {
       "startDate": "01-01-2025",
-      "endDate": "10-01-2025",
+      "endDate": "15-01-2025",
       "totalDays": 0,
       "leftDays" : 0.0,
       "totalHours": 0,
@@ -87,7 +87,6 @@ class _HomePageState extends State<HomePage> {
   bool isPastContract = false;
   bool isLocked = false;
 
-
   @override
   void initState() {
     super.initState();
@@ -96,7 +95,8 @@ class _HomePageState extends State<HomePage> {
     updateTotalDaysAndHours();
     _checkContractExistence();
     _pastContract();
-    //_ensureDateExists();
+    _fetchLockStatus();
+    _ensureDataExists(minStartDate!,maxEndDate!);
   }
 
   void updateTotalDaysAndHours() async {
@@ -228,6 +228,7 @@ class _HomePageState extends State<HomePage> {
         _checkContractExistence();
         updateTotalDaysAndHours();
         _pastContract();
+        _fetchLockStatus();
       });
     }
   }
@@ -254,32 +255,16 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _ensureDateExists() {
-    const dateFormat = 'dd-MM-yyyy';
+  void _ensureDataExists(DateTime startDate, DateTime endDate) async {
+    const String dateFormat = 'dd-MM-yyyy';
 
-    for (var range in updatedData) {
-      DateTime rangeStartDate = DateFormat(dateFormat).parse(range['startDate']);
-      DateTime rangeEndDate = DateFormat(dateFormat).parse(range['endDate']);
+    for (DateTime date = startDate; !date.isAfter(endDate); date = date.add(Duration(days: 1))) {
+      String formattedDate = DateFormat(dateFormat).format(date);
 
-      for (DateTime date = rangeStartDate;
-      !date.isAfter(rangeEndDate);
-      date = date.add(Duration(days: 1))) {
-        String formattedDate = DateFormat(dateFormat).format(date);
+      try {
+        var fetchedData = await fetchCategoryDetailsByDate(formattedDate);
 
-        bool dateExists = range['entries'].any((entry) => entry['selectedDate'] == formattedDate);
-
-        if (!dateExists) {
-          var newEntry = {
-            'selectedDate': formattedDate,
-            'isLocked': false,
-            'categorylist': [
-              {'category': 'Admin-General', 'time': '0:00', 'journals': ''},
-              {'category': 'Academic-General', 'time': '0:00', 'journals': ''},
-              {'category': 'Fundraising-General', 'time': '0:00', 'journals': ''},
-            ],
-          };
-
-          range['entries'].add(newEntry);
+        if (fetchedData.isEmpty) {
 
           try {
             final repository = ContractTransactionRepository();
@@ -307,7 +292,30 @@ class _HomePageState extends State<HomePage> {
           } catch (e) {
             print('Error adding category transaction for $formattedDate: $e');
           }
+
+          var newEntry = {
+            'selectedDate': formattedDate,
+            'isLocked': false,
+            'categorylist': [
+              {'category': 'Admin-General', 'time': '0:00', 'journals': ''},
+              {'category': 'Academic-General', 'time': '0:00', 'journals': ''},
+              {'category': 'Fundraising-General', 'time': '0:00', 'journals': ''},
+            ],
+          };
+
+          for (var range in updatedData) {
+            DateTime rangeStartDate = DateFormat(dateFormat).parse(range['startDate']);
+            DateTime rangeEndDate = DateFormat(dateFormat).parse(range['endDate']);
+
+            if (date.isAfter(rangeStartDate.subtract(Duration(days: 1))) &&
+                date.isBefore(rangeEndDate.add(Duration(days: 1)))) {
+              range['entries'].add(newEntry);
+              break;
+            }
+          }
         }
+      } catch (e) {
+        print('Error ensuring data for $formattedDate: $e');
       }
     }
   }
@@ -330,32 +338,6 @@ class _HomePageState extends State<HomePage> {
           'endDate': formattedDate,
           'entries': [],
         });
-        // try {
-        //   final repository = ContractTransactionRepository();
-        //   repository.addCategoryTransaction(
-        //     transactionDate: formattedDate,
-        //     categoryId: categoryWithIds['Admin-General'] ?? 0,
-        //     hours: '00:00',
-        //     isLocked: 'false',
-        //     journal: '',
-        //   );
-        //   repository.addCategoryTransaction(
-        //     transactionDate: formattedDate,
-        //     categoryId: categoryWithIds['Academic-General'] ?? 0,
-        //     hours: '00:00',
-        //     isLocked: 'false',
-        //     journal: '',
-        //   );
-        //   repository.addCategoryTransaction(
-        //     transactionDate: formattedDate,
-        //     categoryId: categoryWithIds['Fundraising-General'] ?? 0,
-        //     hours: '00:00',
-        //     isLocked: 'false',
-        //     journal: '',
-        //   );
-        // } catch (e) {
-        //   print('Error adding category transaction: $e');
-        // }
         return updatedData.last;
       },
     );
@@ -373,32 +355,48 @@ class _HomePageState extends State<HomePage> {
           ],
         };
         entry['entries'].add(newEntry);
-        // const dateFormat = 'dd-MM-yyyy';
-        // final repository = new ContractTransactionRepository();
-        // repository.addCategoryTransaction(
-        //   transactionDate: DateFormat(dateFormat).format(selectedDate),
-        //   categoryId: categoryWithIds['Admin-General'] ?? 0,
-        //   journal: '',
-        //   hours: '00:00',
-        //   isLocked: 'false',
-        // );
-        // repository.addCategoryTransaction(
-        //   transactionDate: DateFormat(dateFormat).format(selectedDate),
-        //   categoryId: categoryWithIds['Academic-General'] ?? 0,
-        //   journal: '',
-        //   hours: '00:00',
-        //   isLocked: 'false',
-        // );
-        // repository.addCategoryTransaction(
-        //   transactionDate: DateFormat(dateFormat).format(selectedDate),
-        //   categoryId: categoryWithIds['Fundraising-General'] ?? 0,
-        //   journal: '',
-        //   hours: '00:00',
-        //   isLocked: 'false',
-        // );
         return newEntry;
       },
     );
+  }
+
+  Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transactionDate) async {
+    final DatabaseHelper _dbHelper = DatabaseHelper();
+
+    final dbClient = await _dbHelper.database;
+    try {
+      List<Map<String, dynamic>> result = await dbClient.query(
+        DatabaseHelper.contractTransaction,
+        columns: [
+          DatabaseHelper.categoryId,
+          DatabaseHelper.hours,
+          DatabaseHelper.journal,
+          DatabaseHelper.isLock,
+        ],
+        where: '${DatabaseHelper.transactionDate} = ?',
+        whereArgs: [transactionDate],
+      );
+
+
+      return result;
+    } catch (e) {
+      print('Error fetching category details for date $transactionDate: $e');
+      return [];
+    }
+  }
+
+  Future<void> _fetchLockStatus() async {
+    String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+
+    try {
+      final result = await fetchCategoryDetailsByDate(transactionDate);
+      bool locked = result.any((entry) => entry['islock'] == 'true');
+      setState(() {
+        isLocked = locked;
+      });
+    } catch (e) {
+      print('Error fetching lock status: $e');
+    }
   }
 
   @override
@@ -439,6 +437,7 @@ class _HomePageState extends State<HomePage> {
                         _checkContractExistence();
                         updateTotalDaysAndHours();
                         _pastContract();
+                        _fetchLockStatus();
                       }
                     });
                   },
@@ -464,6 +463,7 @@ class _HomePageState extends State<HomePage> {
                         _checkContractExistence();
                         updateTotalDaysAndHours();
                         _pastContract();
+                        _fetchLockStatus();
                       }
                     });
                   },
@@ -480,15 +480,17 @@ class _HomePageState extends State<HomePage> {
               updatedData: updatedData,
               updateTotalDaysAndHours: updateTotalDaysAndHours,
               getSelectedDateData: _getSelectedDateData(),
+              isLocked: isLocked,
+              // fetchCategoryDetailsByDate: fetchCategoryDetailsByDate,
             ),
             if(isPastContract) LockAndSaving(
-              selectedDate: selectedDate,
               onSave: () {
                 String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-                print("Data saved for $formattedDate");
+                print("Data saved for: $formattedDate");
               },
               onLock: () {
                 setState(() {
+                  isLocked = true;
                   final String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDate);
 
                   for (var dateRange in updatedData) {
@@ -513,6 +515,7 @@ class _HomePageState extends State<HomePage> {
                   );
                 });
               },
+              isLocked : isLocked,
             ),
             DisplayBottomDateAndHour(totalHours: totalHours ,totalDays : totalDays, leftHours: leftHours, leftDays: leftDays, leftMinutes: leftMinutes,),
           ]
@@ -521,3 +524,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
