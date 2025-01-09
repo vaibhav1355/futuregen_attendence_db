@@ -29,9 +29,9 @@ class ContractTransactionRepository {
           DatabaseHelper.contractTransaction,
           {
             if (journal != null) DatabaseHelper.journal: journal,
-            if (isLocked != null) DatabaseHelper.isLock: isLocked,
+            if (isLocked != null) DatabaseHelper.islock : isLocked,
             if (hours != null) DatabaseHelper.hours: hours,
-            DatabaseHelper.dateSubmitted: DateTime.now().toIso8601String(),
+            DatabaseHelper.datesubmitted: DateTime.now().toIso8601String(),
           },
           where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.categoryId} = ?',
           whereArgs: [transaction_date, categoryId],
@@ -41,9 +41,9 @@ class ContractTransactionRepository {
           DatabaseHelper.transaction_date: transaction_date,
           DatabaseHelper.categoryId: categoryId,
           DatabaseHelper.journal: journal ?? '',
-          DatabaseHelper.dateSubmitted: DateTime.now().toIso8601String(),
-          DatabaseHelper.submittedBy: 1,
-          DatabaseHelper.isLock: isLocked ?? 'false',
+          DatabaseHelper.datesubmitted: DateTime.now().toIso8601String(),
+          DatabaseHelper.submitted_by : 1,
+          DatabaseHelper.islock : isLocked ?? 'false',
           DatabaseHelper.hours: hours ?? '00:00',
           DatabaseHelper.finalSubmit: '',
           DatabaseHelper.contractId: 1,
@@ -65,7 +65,7 @@ class ContractTransactionRepository {
           DatabaseHelper.categoryId,
           DatabaseHelper.hours,
           DatabaseHelper.journal,
-          DatabaseHelper.isLock,
+          DatabaseHelper.islock ,
         ],
         where: '${DatabaseHelper.transaction_date} = ?',
         whereArgs: [transaction_date],
@@ -119,7 +119,7 @@ class ContractTransactionRepository {
     try {
       final String lockState = isLocked ? 'true' : 'false';
       await dbClient.rawUpdate(
-        'UPDATE ${DatabaseHelper.contractTransaction} SET ${DatabaseHelper.isLock} = ? WHERE ${DatabaseHelper.transaction_date} = ?',
+        'UPDATE ${DatabaseHelper.contractTransaction} SET ${DatabaseHelper.islock } = ? WHERE ${DatabaseHelper.transaction_date} = ?',
         [lockState, transaction_date],
       );
     } catch (e) {

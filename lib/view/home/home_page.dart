@@ -371,7 +371,7 @@ class _HomePageState extends State<HomePage> {
           DatabaseHelper.categoryId,
           DatabaseHelper.hours,
           DatabaseHelper.journal,
-          DatabaseHelper.isLock,
+          DatabaseHelper.islock ,
         ],
         where: '${DatabaseHelper.transaction_date} = ?',
         whereArgs: [transactionDate],

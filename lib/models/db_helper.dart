@@ -25,9 +25,9 @@ class DatabaseHelper {
   static const categoryId= 'categoryId';
   static const hours = 'hours';
   static const journal = 'journal';
-  static const dateSubmitted = 'datesubmitted';
-  static const submittedBy = 'submitted_by';
-  static const isLock = 'islock';
+  static const datesubmitted = 'datesubmitted';
+  static const submitted_by  = 'submitted_by';
+  static const islock  = 'islock';
   static const finalSubmit = 'finalsubmit';
   static const contractId = 'contract_id';
   static const syncStatus = 'sync_status';
@@ -88,9 +88,9 @@ class DatabaseHelper {
       $categoryId INTEGER,
       $hours TEXT,
       $journal TEXT,
-      $dateSubmitted TEXT,
-      $submittedBy INTEGER,
-      $isLock TEXT,
+      $datesubmitted TEXT,
+      $submitted_by  INTEGER,
+      $islock  TEXT,
       $finalSubmit TEXT, 
       $contractId INTEGER,
       $syncStatus INTEGER, 

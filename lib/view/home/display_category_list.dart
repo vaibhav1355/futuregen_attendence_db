@@ -149,6 +149,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
               journal: updatedText,
               categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
             );
+
             //bool entryUpdated = false;
 
             // for (var dateRange in widget.updatedData) {
