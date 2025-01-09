@@ -20,8 +20,8 @@ class DatabaseHelper {
 
   // contract transaction Table
   static const transactionId = 'id';
-  static const empId = 'empid';
-  static const transactionDate = 'transaction_date';
+  static const empid = 'empid';
+  static const transaction_date = 'transaction_date';
   static const categoryId= 'categoryId';
   static const hours = 'hours';
   static const journal = 'journal';
@@ -83,8 +83,8 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE $contractTransaction(
       $transactionId INTEGER PRIMARY KEY AUTOINCREMENT,
-      $empId INTEGER,
-      $transactionDate TEXT ,
+      $empid INTEGER,
+      $transaction_date TEXT ,
       $categoryId INTEGER,
       $hours TEXT,
       $journal TEXT,
@@ -119,4 +119,3 @@ class DatabaseHelper {
   }
 
 }
-

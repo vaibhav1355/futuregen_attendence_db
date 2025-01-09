@@ -353,5 +353,4 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
       ],
     );
   }
-
 }

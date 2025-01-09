@@ -18,7 +18,7 @@ class ContractTransactionRepository {
     try {
       final existingEntries = await dbClient.query(
         DatabaseHelper.contractTransaction,
-        where: '${DatabaseHelper.transactionDate} = ? AND ${DatabaseHelper.categoryId} = ?',
+        where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.categoryId} = ?',
         whereArgs: [transactionDate, categoryId],
       );
 
@@ -33,12 +33,12 @@ class ContractTransactionRepository {
             if (hours != null) DatabaseHelper.hours: hours,
             DatabaseHelper.dateSubmitted: DateTime.now().toIso8601String(),
           },
-          where: '${DatabaseHelper.transactionDate} = ? AND ${DatabaseHelper.categoryId} = ?',
+          where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.categoryId} = ?',
           whereArgs: [transactionDate, categoryId],
         );
       } else {
         await dbClient.insert(DatabaseHelper.contractTransaction, {
-          DatabaseHelper.transactionDate: transactionDate,
+          DatabaseHelper.transaction_date: transactionDate,
           DatabaseHelper.categoryId: categoryId,
           DatabaseHelper.journal: journal ?? '',
           DatabaseHelper.dateSubmitted: DateTime.now().toIso8601String(),
@@ -67,7 +67,7 @@ class ContractTransactionRepository {
           DatabaseHelper.journal,
           DatabaseHelper.isLock,
         ],
-        where: '${DatabaseHelper.transactionDate} = ?',
+        where: '${DatabaseHelper.transaction_date} = ?',
         whereArgs: [transactionDate],
       );
     } catch (e) {
@@ -87,15 +87,15 @@ class ContractTransactionRepository {
     try {
 
       final queryCondition = startDate == endDate
-          ? '${DatabaseHelper.transactionDate} = ?'
-          : '${DatabaseHelper.transactionDate} BETWEEN ? AND ?';
+          ? '${DatabaseHelper.transaction_date} = ?'
+          : '${DatabaseHelper.transaction_date} BETWEEN ? AND ?';
 
       final queryArgs = startDate == endDate ? [startDate] : [startDate, endDate];
 
       final result = await dbClient.query(
         DatabaseHelper.contractTransaction,
         columns: [
-          DatabaseHelper.transactionDate,
+          DatabaseHelper.transaction_date,
           DatabaseHelper.categoryId,
           DatabaseHelper.hours,
         ],
@@ -119,7 +119,7 @@ class ContractTransactionRepository {
     try {
       final String lockState = isLocked ? 'true' : 'false';
       await dbClient.rawUpdate(
-        'UPDATE ${DatabaseHelper.contractTransaction} SET ${DatabaseHelper.isLock} = ? WHERE ${DatabaseHelper.transactionDate} = ?',
+        'UPDATE ${DatabaseHelper.contractTransaction} SET ${DatabaseHelper.isLock} = ? WHERE ${DatabaseHelper.transaction_date} = ?',
         [lockState, transactionDate],
       );
     } catch (e) {

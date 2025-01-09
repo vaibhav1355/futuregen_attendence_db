@@ -373,7 +373,7 @@ class _HomePageState extends State<HomePage> {
           DatabaseHelper.journal,
           DatabaseHelper.isLock,
         ],
-        where: '${DatabaseHelper.transactionDate} = ?',
+        where: '${DatabaseHelper.transaction_date} = ?',
         whereArgs: [transactionDate],
       );
 
@@ -524,4 +524,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
