@@ -102,7 +102,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
         final repository = ContractTransactionRepository();
 
         await repository.addCategoryTransaction(
-          transactionDate: formattedDate,
+          transaction_date: formattedDate,
           hours: formattedTime,
           categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
         );
@@ -145,7 +145,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
           onJournalUpdate: (updatedText) async {
             final repository = ContractTransactionRepository();
             await repository.addCategoryTransaction(
-              transactionDate: formattedDate,
+              transaction_date: formattedDate,
               journal: updatedText,
               categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
             );

@@ -7,7 +7,7 @@ class ContractTransactionRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   Future<void> addCategoryTransaction({
-    required String transactionDate,
+    required String transaction_date,
     required int categoryId,
     String? journal,
     String? isLocked,
@@ -19,7 +19,7 @@ class ContractTransactionRepository {
       final existingEntries = await dbClient.query(
         DatabaseHelper.contractTransaction,
         where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.categoryId} = ?',
-        whereArgs: [transactionDate, categoryId],
+        whereArgs: [transaction_date, categoryId],
       );
 
       if (existingEntries.isNotEmpty) {
@@ -34,11 +34,11 @@ class ContractTransactionRepository {
             DatabaseHelper.dateSubmitted: DateTime.now().toIso8601String(),
           },
           where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.categoryId} = ?',
-          whereArgs: [transactionDate, categoryId],
+          whereArgs: [transaction_date, categoryId],
         );
       } else {
         await dbClient.insert(DatabaseHelper.contractTransaction, {
-          DatabaseHelper.transaction_date: transactionDate,
+          DatabaseHelper.transaction_date: transaction_date,
           DatabaseHelper.categoryId: categoryId,
           DatabaseHelper.journal: journal ?? '',
           DatabaseHelper.dateSubmitted: DateTime.now().toIso8601String(),
@@ -56,7 +56,7 @@ class ContractTransactionRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transactionDate) async {
+  Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transaction_date) async {
     final dbClient = await _dbHelper.database;
     try {
       return await dbClient.query(
@@ -68,10 +68,10 @@ class ContractTransactionRepository {
           DatabaseHelper.isLock,
         ],
         where: '${DatabaseHelper.transaction_date} = ?',
-        whereArgs: [transactionDate],
+        whereArgs: [transaction_date],
       );
     } catch (e) {
-      print('Error fetching category details for date $transactionDate: $e');
+      print('Error fetching category details for date $transaction_date $e');
       return [];
     }
   }
@@ -112,7 +112,7 @@ class ContractTransactionRepository {
 
   // for updating the lock status in db
   Future<void> lockTransactionsByDate({
-    required String transactionDate,
+    required String transaction_date,
     required bool isLocked,
   }) async {
     final dbClient = await _dbHelper.database;
@@ -120,7 +120,7 @@ class ContractTransactionRepository {
       final String lockState = isLocked ? 'true' : 'false';
       await dbClient.rawUpdate(
         'UPDATE ${DatabaseHelper.contractTransaction} SET ${DatabaseHelper.isLock} = ? WHERE ${DatabaseHelper.transaction_date} = ?',
-        [lockState, transactionDate],
+        [lockState, transaction_date],
       );
     } catch (e) {
       print('Error in lockTransactionsByDate: $e');

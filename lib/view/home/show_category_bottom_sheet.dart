@@ -93,7 +93,7 @@ class CategoryBottomSheet {
 
                                   await repository.addCategoryTransaction(
                                     categoryId: categoryWithIds[category] ?? 0,
-                                    transactionDate: formattedDate,
+                                    transaction_date: formattedDate,
                                     hours: '00:00',
                                     isLocked: 'false',
                                     journal: '',

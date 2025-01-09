@@ -269,21 +269,21 @@ class _HomePageState extends State<HomePage> {
           try {
             final repository = ContractTransactionRepository();
             repository.addCategoryTransaction(
-              transactionDate: formattedDate,
+              transaction_date: formattedDate,
               categoryId: categoryWithIds['Admin-General'] ?? 0,
               journal: '',
               hours: '0:00',
               isLocked: 'false',
             );
             repository.addCategoryTransaction(
-              transactionDate: formattedDate,
+              transaction_date: formattedDate,
               categoryId: categoryWithIds['Academic-General'] ?? 0,
               journal: '',
               hours: '0:00',
               isLocked: 'false',
             );
             repository.addCategoryTransaction(
-              transactionDate: formattedDate,
+              transaction_date: formattedDate,
               categoryId: categoryWithIds['Fundraising-General'] ?? 0,
               journal: '',
               hours: '0:00',
@@ -510,7 +510,7 @@ class _HomePageState extends State<HomePage> {
 
                   final repository = ContractTransactionRepository();
                   repository.lockTransactionsByDate(
-                    transactionDate: transactionDate,
+                    transaction_date: transactionDate,
                     isLocked: true,
                   );
                 });
