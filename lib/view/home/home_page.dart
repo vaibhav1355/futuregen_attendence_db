@@ -24,18 +24,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  static const Map<String, int> categoryWithIds = {
-    'Admin-General': 1,
-    'Academic-General': 2,
-    'Fundraising-General': 3,
-    'Marketing-General': 4,
-    'Operations-General': 5,
-    'Finance-General': 6,
-    'HR-General': 7,
-    'Research-General': 8,
-    'Event Management-General': 9,
-    'Customer Service-General': 10,
-  };
+  // static const Map<String, int> categoryWithIds = {
+  //   'Admin-General': 1,
+  //   'Academic-General': 2,
+  //   'Fundraising-General': 3,
+  //   'Marketing-General': 4,
+  //   'Operations-General': 5,
+  //   'Finance-General': 6,
+  //   'HR-General': 7,
+  //   'Research-General': 8,
+  //   'Event Management-General': 9,
+  //   'Customer Service-General': 10,
+  // };
 
   final List<Map<String, dynamic>> updatedData = [
     {
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
       ],
     },
     {
-      "startDate": "01-01-2025",
+      "startDate": "29-12-2024",
       "endDate": "15-01-2025",
       "totalDays": 0,
       "leftDays" : 0.0,
@@ -97,89 +97,6 @@ class _HomePageState extends State<HomePage> {
     _pastContract();
     _fetchLockStatus();
     _ensureDataExists(minStartDate!,maxEndDate!);
-  }
-
-  void updateTotalDaysAndHours() async {
-    int _daysBetween(DateTime start, DateTime end) => end.difference(start).inDays;
-
-    try {
-      for (var range in updatedData) {
-        DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
-        DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
-
-        List<Map<String, dynamic>> categoryData = await ContractTransactionRepository().fetchCategoryStartDateEndDate(
-          range['startDate'],
-          range['endDate'],
-        );
-
-        int totalUsedMinutes = 0;
-
-        for (var entry in categoryData) {
-          if (entry[DatabaseHelper.hours] != null) {
-            final timeParts = entry[DatabaseHelper.hours].toString().split(':');
-            if (timeParts.length == 2) {
-              int hours = int.tryParse(timeParts[0]) ?? 0;
-              int minutes = int.tryParse(timeParts[1]) ?? 0;
-              totalUsedMinutes += (hours * 60) + minutes;
-            } else {
-              print('Invalid time format: ${entry[DatabaseHelper.hours]}');
-            }
-          }
-        }
-
-        int totalUsedHours = totalUsedMinutes ~/ 60;
-        totalUsedMinutes %= 60;
-
-        int rangeDays = _daysBetween(rangeStartDate, rangeEndDate) + 1;
-        int rangeTotalMinutes = rangeDays * 8 * 60; // Assuming 8 hours/day
-        int remainingMinutes = rangeTotalMinutes - (totalUsedHours * 60 + totalUsedMinutes);
-
-        setState(() {
-          range['totalDays'] = rangeDays;
-          range['totalHours'] = rangeTotalMinutes ~/ 60;
-          range['leftHours'] = remainingMinutes ~/ 60;
-          range['leftMinutes'] = remainingMinutes % 60;
-          range['leftDays'] = double.parse(((remainingMinutes / 60.0) / 8.0).toStringAsFixed(2));
-        });
-      }
-
-      // Check if the selected date falls in any range
-      bool dateInRange = false;
-
-      for (var range in updatedData) {
-        DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
-        DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
-
-        if (selectedDate.isAtSameMomentAs(rangeStartDate) ||
-            selectedDate.isAtSameMomentAs(rangeEndDate) ||
-            (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate))) {
-          dateInRange = true;
-
-          setState(() {
-            totalDays = range['totalDays'];
-            totalHours = range['totalHours'];
-            leftHours = range['leftHours'];
-            leftMinutes = range['leftMinutes'];
-            leftDays = range['leftDays'];
-          });
-          break; // Exit the loop as we've found the range
-        }
-      }
-
-      if (!dateInRange) {
-        // Reset totals if no range contains the selected date
-        setState(() {
-          totalDays = 0;
-          totalHours = 0;
-          leftHours = 0;
-          leftMinutes = 0;
-          leftDays = 0.0;
-        });
-      }
-    } catch (e, stackTrace) {
-      print('Error in updateTotalDaysAndHours: $e');
-      print('Stack trace: $stackTrace');
-    }
   }
 
   void _calculateMinAndMaxDates() {
@@ -270,21 +187,21 @@ class _HomePageState extends State<HomePage> {
             final repository = ContractTransactionRepository();
             repository.addCategoryTransaction(
               transaction_date: formattedDate,
-              categoryId: categoryWithIds['Admin-General'] ?? 0,
+              category_id: CategoryService.categoryWithIds['Admin-General'] ?? 0,
               journal: '',
               hours: '0:00',
               isLocked: 'false',
             );
             repository.addCategoryTransaction(
               transaction_date: formattedDate,
-              categoryId: categoryWithIds['Academic-General'] ?? 0,
+              category_id: CategoryService.categoryWithIds['Academic-General'] ?? 0,
               journal: '',
               hours: '0:00',
               isLocked: 'false',
             );
             repository.addCategoryTransaction(
               transaction_date: formattedDate,
-              categoryId: categoryWithIds['Fundraising-General'] ?? 0,
+              category_id: CategoryService.categoryWithIds['Fundraising-General'] ?? 0,
               journal: '',
               hours: '0:00',
               isLocked: 'false',
@@ -360,6 +277,90 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void updateTotalDaysAndHours() async {
+    int _daysBetween(DateTime start, DateTime end) => end.difference(start).inDays;
+
+    try {
+      for (var range in updatedData) {
+        DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
+        DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
+
+        int totalUsedMinutes = 0;
+
+        for (int i = 0; i <= _daysBetween(rangeStartDate, rangeEndDate); i++) {
+          String transactionDate = DateFormat('dd-MM-yyyy').format(rangeStartDate.add(Duration(days: i)));
+
+          List<Map<String, dynamic>> categoryData = await fetchCategoryDetailsByDate(transactionDate);
+
+          for (var entry in categoryData) {
+            if (entry[DatabaseHelper.hours] != null) {
+              final timeParts = entry[DatabaseHelper.hours].toString().split(':');
+              if (timeParts.length == 2) {
+                int hours = int.tryParse(timeParts[0]) ?? 0;
+                int minutes = int.tryParse(timeParts[1]) ?? 0;
+                totalUsedMinutes += (hours * 60) + minutes;
+              } else {
+                print('Invalid time format: ${entry[DatabaseHelper.hours]}');
+              }
+            }
+          }
+        }
+
+        int totalUsedHours = totalUsedMinutes ~/ 60;
+        totalUsedMinutes %= 60;
+
+        int rangeDays = _daysBetween(rangeStartDate, rangeEndDate) + 1;
+        int rangeTotalMinutes = rangeDays * 8 * 60;
+        int remainingMinutes = rangeTotalMinutes - (totalUsedHours * 60 + totalUsedMinutes);
+
+        setState(() {
+          range['totalDays'] = rangeDays;
+          range['totalHours'] = rangeTotalMinutes ~/ 60;
+          range['leftHours'] = remainingMinutes ~/ 60;
+          range['leftMinutes'] = remainingMinutes % 60;
+          range['leftDays'] = double.parse(((remainingMinutes / 60.0) / 8.0).toStringAsFixed(2));
+        });
+      }
+
+      // Check if the selected date falls in any range
+      bool dateInRange = false;
+
+      for (var range in updatedData) {
+        DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
+        DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
+
+        if (selectedDate.isAtSameMomentAs(rangeStartDate) ||
+            selectedDate.isAtSameMomentAs(rangeEndDate) ||
+            (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate))) {
+          dateInRange = true;
+
+          setState(() {
+            totalDays = range['totalDays'];
+            totalHours = range['totalHours'];
+            leftHours = range['leftHours'];
+            leftMinutes = range['leftMinutes'];
+            leftDays = range['leftDays'];
+          });
+          break; // Exit the loop as we've found the range
+        }
+      }
+
+      if (!dateInRange) {
+        // Reset totals if no range contains the selected date
+        setState(() {
+          totalDays = 0;
+          totalHours = 0;
+          leftHours = 0;
+          leftMinutes = 0;
+          leftDays = 0.0;
+        });
+      }
+    } catch (e, stackTrace) {
+      print('Error in updateTotalDaysAndHours: $e');
+      print('Stack trace: $stackTrace');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transactionDate) async {
     final DatabaseHelper _dbHelper = DatabaseHelper();
 
@@ -368,7 +369,7 @@ class _HomePageState extends State<HomePage> {
       List<Map<String, dynamic>> result = await dbClient.query(
         DatabaseHelper.contractTransaction,
         columns: [
-          DatabaseHelper.categoryId,
+          DatabaseHelper.category_id,
           DatabaseHelper.hours,
           DatabaseHelper.journal,
           DatabaseHelper.islock ,

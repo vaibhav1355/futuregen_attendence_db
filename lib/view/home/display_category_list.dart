@@ -1,24 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:futurgen_attendance/view/home/category_service.dart';
 import 'package:futurgen_attendance/view/home/show_category_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 import '../../models/contract_transaction_repository.dart';
 import 'journal.dart';
 
 class DisplayCategoryList extends StatefulWidget {
-
-  static const Map<String, int> categoryWithIds = {
-    'Admin-General': 1,
-    'Academic-General': 2,
-    'Fundraising-General': 3,
-    'Marketing-General': 4,
-    'Operations-General': 5,
-    'Finance-General': 6,
-    'HR-General': 7,
-    'Research-General': 8,
-    'Event Management-General': 9,
-    'Customer Service-General': 10,
-  };
 
   final Map<String, dynamic> getSelectedDateData;
   final List<Map<String, dynamic>> updatedData;
@@ -63,8 +51,8 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
     final fetchedData = await ContractTransactionRepository().fetchCategoryDetailsByDate(widget.selectedDate);
 
     final mappedData = fetchedData.map((item) {
-      final categoryName = DisplayCategoryList.categoryWithIds.keys.firstWhere(
-            (key) => DisplayCategoryList.categoryWithIds[key] == item['categoryId'],
+      final categoryName = CategoryService.categoryWithIds.keys.firstWhere(
+            (key) => CategoryService.categoryWithIds[key] == item['category_id'],
         orElse: () => 'Unknown Category',
       );
 
@@ -104,7 +92,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
         await repository.addCategoryTransaction(
           transaction_date: formattedDate,
           hours: formattedTime,
-          categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
+          category_id: CategoryService.categoryWithIds[category] ?? 0,
         );
 
         if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
@@ -147,11 +135,10 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
             await repository.addCategoryTransaction(
               transaction_date: formattedDate,
               journal: updatedText,
-              categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
+              category_id: CategoryService.categoryWithIds[category] ?? 0,
             );
 
             //bool entryUpdated = false;
-
             // for (var dateRange in widget.updatedData) {
             //   final DateTime startDate = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
             //   final DateTime endDate = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
@@ -190,7 +177,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
             //   await repository.addCategoryTransaction(
             //     transactionDate: formattedDate,
             //     hours: '00:00',
-            //     categoryId: DisplayCategoryList.categoryWithIds[category] ?? 0,
+            //     category_id: DisplayCategoryList.categoryWithIds[category] ?? 0,
             //     journal: updatedText,
             //     isLocked: 'false',
             //   );

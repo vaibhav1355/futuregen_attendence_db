@@ -8,7 +8,7 @@ class ContractTransactionRepository {
 
   Future<void> addCategoryTransaction({
     required String transaction_date,
-    required int categoryId,
+    required int category_id,
     String? journal,
     String? isLocked,
     String? hours,
@@ -18,8 +18,8 @@ class ContractTransactionRepository {
     try {
       final existingEntries = await dbClient.query(
         DatabaseHelper.contractTransaction,
-        where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.categoryId} = ?',
-        whereArgs: [transaction_date, categoryId],
+        where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.category_id} = ?',
+        whereArgs: [transaction_date, category_id],
       );
 
       if (existingEntries.isNotEmpty) {
@@ -33,13 +33,13 @@ class ContractTransactionRepository {
             if (hours != null) DatabaseHelper.hours: hours,
             DatabaseHelper.datesubmitted: DateTime.now().toIso8601String(),
           },
-          where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.categoryId} = ?',
-          whereArgs: [transaction_date, categoryId],
+          where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.category_id} = ?',
+          whereArgs: [transaction_date, category_id],
         );
       } else {
         await dbClient.insert(DatabaseHelper.contractTransaction, {
           DatabaseHelper.transaction_date: transaction_date,
-          DatabaseHelper.categoryId: categoryId,
+          DatabaseHelper.category_id: category_id,
           DatabaseHelper.journal: journal ?? '',
           DatabaseHelper.datesubmitted: DateTime.now().toIso8601String(),
           DatabaseHelper.submitted_by : 1,
@@ -62,7 +62,7 @@ class ContractTransactionRepository {
       return await dbClient.query(
         DatabaseHelper.contractTransaction,
         columns: [
-          DatabaseHelper.categoryId,
+          DatabaseHelper.category_id,
           DatabaseHelper.hours,
           DatabaseHelper.journal,
           DatabaseHelper.islock ,
@@ -77,37 +77,6 @@ class ContractTransactionRepository {
   }
 
 
-  // yeh bhi sahi karna padega
-  Future<List<Map<String, dynamic>>> fetchCategoryStartDateEndDate(
-      String startDate,
-      String endDate,
-      ) async {
-    final dbClient = await _dbHelper.database;
-
-    try {
-
-      final queryCondition = startDate == endDate
-          ? '${DatabaseHelper.transaction_date} = ?'
-          : '${DatabaseHelper.transaction_date} BETWEEN ? AND ?';
-
-      final queryArgs = startDate == endDate ? [startDate] : [startDate, endDate];
-
-      final result = await dbClient.query(
-        DatabaseHelper.contractTransaction,
-        columns: [
-          DatabaseHelper.transaction_date,
-          DatabaseHelper.categoryId,
-          DatabaseHelper.hours,
-        ],
-        where: queryCondition,
-        whereArgs: queryArgs,
-      );
-      return result;
-    } catch (e) {
-      print('Error fetching categories: $e');
-      return [];
-    }
-  }
 
 
   // for updating the lock status in db

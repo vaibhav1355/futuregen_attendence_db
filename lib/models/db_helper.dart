@@ -5,7 +5,7 @@ import 'package:path/path.dart';
 
 class DatabaseHelper {
 
-  static const databaseName = "Attendance2.db";
+  static const databaseName = "Attendance3.db";
   static const databaseVersion = 1;
   static Database? db;
 
@@ -22,7 +22,7 @@ class DatabaseHelper {
   static const transactionId = 'id';
   static const empid = 'empid';
   static const transaction_date = 'transaction_date';
-  static const categoryId= 'categoryId';
+  static const category_id= 'category_id';
   static const hours = 'hours';
   static const journal = 'journal';
   static const datesubmitted = 'datesubmitted';
@@ -85,7 +85,7 @@ class DatabaseHelper {
       $transactionId INTEGER PRIMARY KEY AUTOINCREMENT,
       $empid INTEGER,
       $transaction_date TEXT ,
-      $categoryId INTEGER,
+      $category_id INTEGER,
       $hours TEXT,
       $journal TEXT,
       $datesubmitted TEXT,

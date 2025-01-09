@@ -41,12 +41,11 @@ class CategoryBottomSheet {
     final repository = ContractTransactionRepository();
 
     String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-    List<Map<String, dynamic>> existingCategories =
-    await repository.fetchCategoryDetailsByDate(formattedDate);
+    List<Map<String, dynamic>> existingCategories = await repository.fetchCategoryDetailsByDate(formattedDate);
 
     for (var category in categories) {
       checkboxStates[category] = existingCategories.any((entry) =>
-      entry['categoryId'] == categoryWithIds[category] && entry['isLock'] == 'false');
+      entry['category_id'] == categoryWithIds[category] && entry['isLock'] == 'false');
     }
 
     showModalBottomSheet(
@@ -82,7 +81,7 @@ class CategoryBottomSheet {
                             for (var category in categories) {
                               if (checkboxStates[category] == true) {
                                 bool isAlreadySelected = existingCategories.any((entry) =>
-                                entry['categoryId'] == categoryWithIds[category]);
+                                entry['category_id'] == categoryWithIds[category]);
 
                                 if (!isAlreadySelected) {
                                   selectedDateData['categorylist'].add({
@@ -92,7 +91,7 @@ class CategoryBottomSheet {
                                   });
 
                                   await repository.addCategoryTransaction(
-                                    categoryId: categoryWithIds[category] ?? 0,
+                                    category_id: categoryWithIds[category] ?? 0,
                                     transaction_date: formattedDate,
                                     hours: '00:00',
                                     isLocked: 'false',
@@ -134,14 +133,14 @@ class CategoryBottomSheet {
                                 category,
                                 style: TextStyle(
                                   color: existingCategories.any((entry) =>
-                                  entry['categoryId'] == categoryWithIds[category])
+                                  entry['category_id'] == categoryWithIds[category])
                                       ? Colors.grey
                                       : Colors.black,
                                 ),
                               ),
                               value: isChecked,
                               onChanged: existingCategories.any((entry) =>
-                              entry['categoryId'] == categoryWithIds[category])
+                              entry['category_id'] == categoryWithIds[category])
                                   ? null
                                   : (bool? value) {
                                 setState(() {
