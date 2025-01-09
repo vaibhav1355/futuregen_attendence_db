@@ -27,7 +27,7 @@ class CustomTextFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       inputFormatters: [
-        FilteringTextInputFormatter.deny(RegExp(r'\s')), // Deny spaces
+        FilteringTextInputFormatter.deny(RegExp(r'\s')),
       ],
       controller: controller,
       decoration: InputDecoration(

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:futurgen_attendance/view/home/category_service.dart';
 import 'package:futurgen_attendance/view/home/show_category_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 import '../../models/contract_transaction_repository.dart';
@@ -51,8 +50,8 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
     final fetchedData = await ContractTransactionRepository().fetchCategoryDetailsByDate(widget.selectedDate);
 
     final mappedData = fetchedData.map((item) {
-      final categoryName = CategoryService.categoryWithIds.keys.firstWhere(
-            (key) => CategoryService.categoryWithIds[key] == item['category_id'],
+      final categoryName = CategoryBottomSheet.categoryWithIds.keys.firstWhere(
+            (key) => CategoryBottomSheet.categoryWithIds[key] == item['category_id'],
         orElse: () => 'Unknown Category',
       );
 
@@ -92,7 +91,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
         await repository.addCategoryTransaction(
           transaction_date: formattedDate,
           hours: formattedTime,
-          category_id: CategoryService.categoryWithIds[category] ?? 0,
+          category_id: CategoryBottomSheet.categoryWithIds[category] ?? 0,
         );
 
         if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
@@ -135,7 +134,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
             await repository.addCategoryTransaction(
               transaction_date: formattedDate,
               journal: updatedText,
-              category_id: CategoryService.categoryWithIds[category] ?? 0,
+              category_id: CategoryBottomSheet.categoryWithIds[category] ?? 0,
             );
 
             //bool entryUpdated = false;
@@ -190,7 +189,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
         ),
       ),
     );
-  } // fix time
+  }
 
   void _showCategoryBottomSheet(BuildContext context) {
 
@@ -210,6 +209,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
   }
 
   @override
+
   Widget build(BuildContext context) {
     final isLocked = widget.isLocked;
     final showAddItemButton = widget.isPastContract && !isLocked;
@@ -341,4 +341,5 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
       ],
     );
   }
+
 }

@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import '../../Constants/constants.dart';
 import '../../models/contract_transaction_repository.dart';
 import '../../models/db_helper.dart';
-import 'category_service.dart';
+import 'contract_navigation.dart';
 import 'display_category_list.dart';
 import 'locking_and_saving.dart';
 import 'no_contract_page.dart';
@@ -23,19 +23,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
-  // static const Map<String, int> categoryWithIds = {
-  //   'Admin-General': 1,
-  //   'Academic-General': 2,
-  //   'Fundraising-General': 3,
-  //   'Marketing-General': 4,
-  //   'Operations-General': 5,
-  //   'Finance-General': 6,
-  //   'HR-General': 7,
-  //   'Research-General': 8,
-  //   'Event Management-General': 9,
-  //   'Customer Service-General': 10,
-  // };
 
   final List<Map<String, dynamic>> updatedData = [
     {
@@ -80,8 +67,6 @@ class _HomePageState extends State<HomePage> {
   int leftMinutes = 0 ;
   double leftDays= 0.0 ;
 
-  int currentDayTotalHours = 0 ;
-  int currentDayTotalMinutes = 0 ;
 
   bool contractExist = false ;
   bool isPastContract = false;
@@ -187,21 +172,21 @@ class _HomePageState extends State<HomePage> {
             final repository = ContractTransactionRepository();
             repository.addCategoryTransaction(
               transaction_date: formattedDate,
-              category_id: CategoryService.categoryWithIds['Admin-General'] ?? 0,
+              category_id: CategoryBottomSheet.categoryWithIds['Admin-General'] ?? 0,
               journal: '',
               hours: '0:00',
               isLocked: 'false',
             );
             repository.addCategoryTransaction(
               transaction_date: formattedDate,
-              category_id: CategoryService.categoryWithIds['Academic-General'] ?? 0,
+              category_id: CategoryBottomSheet.categoryWithIds['Academic-General'] ?? 0,
               journal: '',
               hours: '0:00',
               isLocked: 'false',
             );
             repository.addCategoryTransaction(
               transaction_date: formattedDate,
-              category_id: CategoryService.categoryWithIds['Fundraising-General'] ?? 0,
+              category_id: CategoryBottomSheet.categoryWithIds['Fundraising-General'] ?? 0,
               journal: '',
               hours: '0:00',
               isLocked: 'false',
@@ -422,55 +407,34 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          Container(
-            height: MediaQuery.of(context).size.height * 0.075,
-            color: Color(0xff323641),
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-                  onPressed: () {
-                    setState(() {
-                      if (selectedDate.isAfter(minStartDate!)) {
-                        selectedDate = selectedDate.subtract(Duration(days: 1));
-                        _checkContractExistence();
-                        updateTotalDaysAndHours();
-                        _pastContract();
-                        _fetchLockStatus();
-                      }
-                    });
-                  },
-                ),
-                InkWell(
-                  onTap: () => _selectDate(context),
-                  child: Text(
-                    DateFormat('EEE, dd MMM yyyy').format(selectedDate),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
-                  onPressed: () {
-                    setState(() {
-                      if (selectedDate.add(Duration(days: 1)).isBefore(
-                          DateTime(currentDate.year, currentDate.month, currentDate.day + 1))) {
-                        selectedDate = selectedDate.add(Duration(days: 1));
-                        _checkContractExistence();
-                        updateTotalDaysAndHours();
-                        _pastContract();
-                        _fetchLockStatus();
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
+          ContractNavigation(
+            selectedDate: selectedDate,
+            onPrevious: () {
+              setState(() {
+                if (selectedDate.isAfter(minStartDate!)) {
+                  selectedDate = selectedDate.subtract(Duration(days: 1));
+                    _checkContractExistence();
+                    updateTotalDaysAndHours();
+                    _pastContract();
+                    _fetchLockStatus();
+                }
+              });
+            },
+            onNext: () {
+              setState(() {
+                if (selectedDate.add(Duration(days: 1)).isBefore(
+                    DateTime(currentDate.year, currentDate.month, currentDate.day + 1))) {
+                  selectedDate = selectedDate.add(Duration(days: 1));
+                  _checkContractExistence();
+                  updateTotalDaysAndHours();
+                  _pastContract();
+                  _fetchLockStatus();
+                }
+              });
+            },
+            onSelectDate: () {
+              _selectDate(context);
+            },
           ),
           if (!contractExist) NoContractPage(),
           if(contractExist) ...[
@@ -482,7 +446,6 @@ class _HomePageState extends State<HomePage> {
               updateTotalDaysAndHours: updateTotalDaysAndHours,
               getSelectedDateData: _getSelectedDateData(),
               isLocked: isLocked,
-              // fetchCategoryDetailsByDate: fetchCategoryDetailsByDate,
             ),
             if(isPastContract) LockAndSaving(
               onSave: () {

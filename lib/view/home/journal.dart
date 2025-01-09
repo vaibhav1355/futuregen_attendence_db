@@ -72,9 +72,8 @@ class _JournalScreenState extends State<JournalScreen> {
                   hintText: "Enter your journal entry here...",
                   border: InputBorder.none,
                 ),
-                maxLines: null, // Allow multiple lines for long input
+                maxLines: null,
                 onChanged: (text) {
-                  // Trigger update when text changes
                   _saveJournalText();
                 },
               ),

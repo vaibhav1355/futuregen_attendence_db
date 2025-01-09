@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class LockAndSaving extends StatefulWidget {
+class LockAndSaving extends StatelessWidget {
   final Function() onSave;
   final Function() onLock;
   final bool isLocked ;
@@ -10,15 +10,7 @@ class LockAndSaving extends StatefulWidget {
     required this.onSave,
     required this.onLock,
     required this.isLocked,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _LockAndSavingState createState() => _LockAndSavingState();
-}
-
-class _LockAndSavingState extends State<LockAndSaving> {
-
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,12 +19,12 @@ class _LockAndSavingState extends State<LockAndSaving> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!widget.isLocked)
+          if (!isLocked)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 MaterialButton(
-                  onPressed: widget.onSave,
+                  onPressed: onSave,
                   color: Colors.black,
                   minWidth: 160,
                   height: 45,
@@ -46,7 +38,7 @@ class _LockAndSavingState extends State<LockAndSaving> {
                   ),
                 ),
                 MaterialButton(
-                  onPressed: widget.onLock,
+                  onPressed: onLock,
                   color: Colors.black,
                   minWidth: 160,
                   height: 45,
@@ -61,7 +53,7 @@ class _LockAndSavingState extends State<LockAndSaving> {
                 ),
               ],
             ),
-          if (widget.isLocked)
+          if (isLocked)
             Container(
               width: MediaQuery.of(context).size.width * 0.8,
               height: 45,

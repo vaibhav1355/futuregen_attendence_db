@@ -5,6 +5,7 @@ import '../../models/contract_transaction_repository.dart';
 
 
 class CategoryBottomSheet {
+
   static const List<String> categories = [
     'Admin-General',
     'Academic-General',

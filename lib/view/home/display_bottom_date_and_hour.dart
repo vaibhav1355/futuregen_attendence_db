@@ -166,7 +166,3 @@ class DisplayBottomDateAndHour extends StatelessWidget {
     );
   }
 }
-
-
-
-
