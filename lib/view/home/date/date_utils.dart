@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class DateUtils {
+class CustomDateUtils {
 
-  static String getCurrentDate() {
+  static String getCurrentDateFormatted() {
     final DateTime currentDate = DateTime.now();
-    final DateFormat dateFormat = DateFormat('dd-MM-yyyy');
-    return dateFormat.format(currentDate);
+    return DateFormat('dd-MM-yyyy').format(currentDate);
   }
 
-  static String getSelectedDate() {
-    final DateTime selectedDate = DateTime.now();
-    return DateFormat('dd-MM-yyyy').format(selectedDate);
+  static String formatDate(DateTime date) {
+    return DateFormat('dd-MM-yyyy').format(date);
   }
+
+  static DateTime parseFormattedDate(String formattedDate) {
+    return DateFormat('dd-MM-yyyy').parse(formattedDate);
+  }
+
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futurgen_attendance/view/drawer/app_drawer.dart';
 import 'package:futurgen_attendance/view/home/display_bottom_date_and_hour.dart';
-import 'package:futurgen_attendance/view/home/journal.dart';
 import 'package:futurgen_attendance/view/home/show_category_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 
@@ -10,6 +9,7 @@ import '../../models/contract_transaction_repository.dart';
 import '../../models/db_helper.dart';
 import 'contract_navigation.dart';
 import 'display_category_list.dart';
+import 'fetch_category_details_by_date.dart';
 import 'locking_and_saving.dart';
 import 'no_contract_page.dart';
 
@@ -67,7 +67,6 @@ class _HomePageState extends State<HomePage> {
   int leftMinutes = 0 ;
   double leftDays= 0.0 ;
 
-
   bool contractExist = false ;
   bool isPastContract = false;
   bool isLocked = false;
@@ -78,8 +77,7 @@ class _HomePageState extends State<HomePage> {
     selectedDate = DateTime(currentDate.year, currentDate.month, currentDate.day);
     _calculateMinAndMaxDates();
     updateTotalDaysAndHours();
-    _checkContractExistence();
-    _pastContract();
+    _updateContractStatus();
     _fetchLockStatus();
     _ensureDataExists(minStartDate!,maxEndDate!);
   }
@@ -94,28 +92,28 @@ class _HomePageState extends State<HomePage> {
     maxEndDate = endDates.reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
-  void _pastContract() {
-    final DateFormat dateFormat = DateFormat("dd-MM-yyyy");
-
-    bool isDateInPastContract = false;
-
-    for (var range in updatedData) {
-      try {
-        DateTime rangeEndDate = dateFormat.parse(range['endDate'] as String);
-        if (selectedDate.isAfter(rangeEndDate)) {
-          isDateInPastContract = true;
-          range['pastContract'] = true;
-        } else {
-          range['pastContract'] = false;
-        }
-      } catch (e) {
-        print('Error parsing date in _pastContract: $e');
-      }
-    }
-    setState(() {
-      isPastContract = isDateInPastContract;
-    });
-  }
+  // void _pastContract() {
+  //   final DateFormat dateFormat = DateFormat("dd-MM-yyyy");
+  //
+  //   bool isDateInPastContract = false;
+  //
+  //   for (var range in updatedData) {
+  //     try {
+  //       DateTime rangeEndDate = dateFormat.parse(range['endDate'] as String);
+  //       if (selectedDate.isAfter(rangeEndDate)) {
+  //         isDateInPastContract = true;
+  //         range['pastContract'] = true;
+  //       } else {
+  //         range['pastContract'] = false;
+  //       }
+  //     } catch (e) {
+  //       print('Error parsing date in _pastContract: $e');
+  //     }
+  //   }
+  //   setState(() {
+  //     isPastContract = isDateInPastContract;
+  //   });
+  // }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -127,33 +125,40 @@ class _HomePageState extends State<HomePage> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        _checkContractExistence();
+        _updateContractStatus();
         updateTotalDaysAndHours();
-        _pastContract();
         _fetchLockStatus();
       });
     }
   }
 
-  void _checkContractExistence() {
+  void _updateContractStatus() {
     final DateFormat dateFormat = DateFormat("dd-MM-yyyy");
 
-    bool dateExistsInAnyRange = false;
+    bool exists = false;
+    bool isPast = false;
 
     for (var range in updatedData) {
       DateTime rangeStartDate = dateFormat.parse(range['startDate']);
       DateTime rangeEndDate = dateFormat.parse(range['endDate']);
 
-      if (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate) ||
+      if (selectedDate.isAfter(rangeEndDate)) {
+        range['pastContract'] = true;
+        isPast = true;
+      } else {
+        range['pastContract'] = false;
+      }
+
+      if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
           selectedDate.isAtSameMomentAs(rangeStartDate) ||
           selectedDate.isAtSameMomentAs(rangeEndDate)) {
-        dateExistsInAnyRange = true;
-        break;
+        exists = true;
       }
     }
 
     setState(() {
-      contractExist = dateExistsInAnyRange;
+      contractExist = exists;
+      isPastContract = isPast;
     });
   }
 
@@ -346,31 +351,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transactionDate) async {
-    final DatabaseHelper _dbHelper = DatabaseHelper();
-
-    final dbClient = await _dbHelper.database;
-    try {
-      List<Map<String, dynamic>> result = await dbClient.query(
-        DatabaseHelper.contractTransaction,
-        columns: [
-          DatabaseHelper.category_id,
-          DatabaseHelper.hours,
-          DatabaseHelper.journal,
-          DatabaseHelper.islock ,
-        ],
-        where: '${DatabaseHelper.transaction_date} = ?',
-        whereArgs: [transactionDate],
-      );
-
-
-      return result;
-    } catch (e) {
-      print('Error fetching category details for date $transactionDate: $e');
-      return [];
-    }
-  }
-
   Future<void> _fetchLockStatus() async {
     String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDate);
 
@@ -413,9 +393,8 @@ class _HomePageState extends State<HomePage> {
               setState(() {
                 if (selectedDate.isAfter(minStartDate!)) {
                   selectedDate = selectedDate.subtract(Duration(days: 1));
-                    _checkContractExistence();
                     updateTotalDaysAndHours();
-                    _pastContract();
+                    _updateContractStatus();
                     _fetchLockStatus();
                 }
               });
@@ -425,9 +404,8 @@ class _HomePageState extends State<HomePage> {
                 if (selectedDate.add(Duration(days: 1)).isBefore(
                     DateTime(currentDate.year, currentDate.month, currentDate.day + 1))) {
                   selectedDate = selectedDate.add(Duration(days: 1));
-                  _checkContractExistence();
+                  _updateContractStatus();
                   updateTotalDaysAndHours();
-                  _pastContract();
                   _fetchLockStatus();
                 }
               });

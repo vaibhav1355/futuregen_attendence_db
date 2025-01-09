@@ -32,7 +32,7 @@ class ContractNavigation extends StatelessWidget {
             onTap: onSelectDate,
             child: Text(
               DateFormat('EEE, dd MMM yyyy').format(selectedDate),
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20),
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20),
             ),
           ),
           IconButton(
