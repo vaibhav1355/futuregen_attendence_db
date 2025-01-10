@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futurgen_attendance/view/drawer/app_drawer.dart';
+import 'package:futurgen_attendance/view/home/date/date_utils.dart';
 import 'package:futurgen_attendance/view/home/display_bottom_date_and_hour.dart';
 import 'package:futurgen_attendance/view/home/show_category_bottom_sheet.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +9,8 @@ import '../../Constants/constants.dart';
 import '../../models/contract_transaction_repository.dart';
 import '../../models/db_helper.dart';
 import 'contract_navigation.dart';
+import 'date/ensure_date_exists.dart';
+import 'date/get_min_max_date.dart';
 import 'display_category_list.dart';
 import 'fetch_category_details_by_date.dart';
 import 'locking_and_saving.dart';
@@ -58,15 +61,6 @@ class _HomePageState extends State<HomePage> {
   final DateTime currentDate = DateTime.now();
   late DateTime selectedDate;
 
-  DateTime? minStartDate;
-  DateTime? maxEndDate;
-
-  int totalHours = 0 ;
-  int totalDays = 0 ;
-  int leftHours = 0 ;
-  int leftMinutes = 0 ;
-  double leftDays= 0.0 ;
-
   bool contractExist = false ;
   bool isPastContract = false;
   bool isLocked = false;
@@ -75,51 +69,18 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     selectedDate = DateTime(currentDate.year, currentDate.month, currentDate.day);
-    _calculateMinAndMaxDates();
     updateTotalDaysAndHours();
     _updateContractStatus();
     _fetchLockStatus();
-    _ensureDataExists(minStartDate!,maxEndDate!);
+    ensureDataExists(GetMinMaxDates.minDate(updatedData)! , GetMinMaxDates.maxDate(updatedData)! , updatedData);
   }
 
-  void _calculateMinAndMaxDates() {
-    final DateFormat dateFormat = DateFormat("dd-MM-yyyy");
-
-    List<DateTime> startDates = updatedData.map((data) => dateFormat.parse(data['startDate'] as String)).toList();
-    List<DateTime> endDates = updatedData.map((data) => dateFormat.parse(data['endDate'] as String)).toList();
-
-    minStartDate = startDates.reduce((a, b) => a.isBefore(b) ? a : b);
-    maxEndDate = endDates.reduce((a, b) => a.isAfter(b) ? a : b);
-  }
-
-  // void _pastContract() {
-  //   final DateFormat dateFormat = DateFormat("dd-MM-yyyy");
-  //
-  //   bool isDateInPastContract = false;
-  //
-  //   for (var range in updatedData) {
-  //     try {
-  //       DateTime rangeEndDate = dateFormat.parse(range['endDate'] as String);
-  //       if (selectedDate.isAfter(rangeEndDate)) {
-  //         isDateInPastContract = true;
-  //         range['pastContract'] = true;
-  //       } else {
-  //         range['pastContract'] = false;
-  //       }
-  //     } catch (e) {
-  //       print('Error parsing date in _pastContract: $e');
-  //     }
-  //   }
-  //   setState(() {
-  //     isPastContract = isDateInPastContract;
-  //   });
-  // }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: minStartDate!,
+      firstDate: GetMinMaxDates.minDate(updatedData)!,
       lastDate: currentDate,
     );
     if (picked != null && picked != selectedDate) {
@@ -160,111 +121,6 @@ class _HomePageState extends State<HomePage> {
       contractExist = exists;
       isPastContract = isPast;
     });
-  }
-
-  void _ensureDataExists(DateTime startDate, DateTime endDate) async {
-    const String dateFormat = 'dd-MM-yyyy';
-
-    for (DateTime date = startDate; !date.isAfter(endDate); date = date.add(Duration(days: 1))) {
-      String formattedDate = DateFormat(dateFormat).format(date);
-
-      try {
-        var fetchedData = await fetchCategoryDetailsByDate(formattedDate);
-
-        if (fetchedData.isEmpty) {
-
-          try {
-            final repository = ContractTransactionRepository();
-            repository.addCategoryTransaction(
-              transaction_date: formattedDate,
-              category_id: CategoryBottomSheet.categoryWithIds['Admin-General'] ?? 0,
-              journal: '',
-              hours: '0:00',
-              isLocked: 'false',
-            );
-            repository.addCategoryTransaction(
-              transaction_date: formattedDate,
-              category_id: CategoryBottomSheet.categoryWithIds['Academic-General'] ?? 0,
-              journal: '',
-              hours: '0:00',
-              isLocked: 'false',
-            );
-            repository.addCategoryTransaction(
-              transaction_date: formattedDate,
-              category_id: CategoryBottomSheet.categoryWithIds['Fundraising-General'] ?? 0,
-              journal: '',
-              hours: '0:00',
-              isLocked: 'false',
-            );
-          } catch (e) {
-            print('Error adding category transaction for $formattedDate: $e');
-          }
-
-          var newEntry = {
-            'selectedDate': formattedDate,
-            'isLocked': false,
-            'categorylist': [
-              {'category': 'Admin-General', 'time': '0:00', 'journals': ''},
-              {'category': 'Academic-General', 'time': '0:00', 'journals': ''},
-              {'category': 'Fundraising-General', 'time': '0:00', 'journals': ''},
-            ],
-          };
-
-          for (var range in updatedData) {
-            DateTime rangeStartDate = DateFormat(dateFormat).parse(range['startDate']);
-            DateTime rangeEndDate = DateFormat(dateFormat).parse(range['endDate']);
-
-            if (date.isAfter(rangeStartDate.subtract(Duration(days: 1))) &&
-                date.isBefore(rangeEndDate.add(Duration(days: 1)))) {
-              range['entries'].add(newEntry);
-              break;
-            }
-          }
-        }
-      } catch (e) {
-        print('Error ensuring data for $formattedDate: $e');
-      }
-    }
-  }
-
-  Map<String, dynamic> _getSelectedDateData() {
-    String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-
-    var entry = updatedData.firstWhere(
-          (range) {
-        DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
-        DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
-        DateTime currentDate = DateFormat('dd-MM-yyyy').parse(formattedDate);
-
-        return currentDate.isAfter(rangeStartDate.subtract(Duration(days: 1))) && currentDate.isBefore(rangeEndDate.add(Duration(days: 1)));
-      },
-      orElse: () {
-        String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-        updatedData.add({
-          'startDate': formattedDate,
-          'endDate': formattedDate,
-          'entries': [],
-        });
-        return updatedData.last;
-      },
-    );
-
-    return entry['entries'].firstWhere(
-          (entry) => entry['selectedDate'] == formattedDate,
-      orElse: () {
-        var newEntry = {
-          'selectedDate': formattedDate,
-          'isLocked': false,
-          'categorylist': [
-            {'category': 'Admin-General', 'time': '0:00', 'journals': ''},
-            {'category': 'Academic-General', 'time': '0:00', 'journals': ''},
-            {'category': 'Fundraising-General', 'time': '0:00', 'journals': ''},
-          ],
-        };
-        entry['entries'].add(newEntry);
-        return newEntry;
-      },
-    );
   }
 
   void updateTotalDaysAndHours() async {
@@ -312,7 +168,6 @@ class _HomePageState extends State<HomePage> {
         });
       }
 
-      // Check if the selected date falls in any range
       bool dateInRange = false;
 
       for (var range in updatedData) {
@@ -325,24 +180,23 @@ class _HomePageState extends State<HomePage> {
           dateInRange = true;
 
           setState(() {
-            totalDays = range['totalDays'];
-            totalHours = range['totalHours'];
-            leftHours = range['leftHours'];
-            leftMinutes = range['leftMinutes'];
-            leftDays = range['leftDays'];
+            CustomDateUtils.totalDays = range['totalDays'];
+            CustomDateUtils.totalHours = range['totalHours'];
+            CustomDateUtils.leftHours = range['leftHours'];
+            CustomDateUtils.leftMinutes = range['leftMinutes'];
+            CustomDateUtils.leftDays = range['leftDays'];
           });
-          break; // Exit the loop as we've found the range
+          break;
         }
       }
 
       if (!dateInRange) {
-        // Reset totals if no range contains the selected date
         setState(() {
-          totalDays = 0;
-          totalHours = 0;
-          leftHours = 0;
-          leftMinutes = 0;
-          leftDays = 0.0;
+          CustomDateUtils.totalDays = 0;
+          CustomDateUtils.totalHours = 0;
+          CustomDateUtils.leftHours = 0;
+          CustomDateUtils.leftMinutes = 0;
+          CustomDateUtils.leftDays = 0.0;
         });
       }
     } catch (e, stackTrace) {
@@ -391,7 +245,7 @@ class _HomePageState extends State<HomePage> {
             selectedDate: selectedDate,
             onPrevious: () {
               setState(() {
-                if (selectedDate.isAfter(minStartDate!)) {
+                if (selectedDate.isAfter(GetMinMaxDates.minDate(updatedData)!)) {
                   selectedDate = selectedDate.subtract(Duration(days: 1));
                     updateTotalDaysAndHours();
                     _updateContractStatus();
@@ -422,7 +276,6 @@ class _HomePageState extends State<HomePage> {
               selectedDate: DateFormat('dd-MM-yyyy').format(selectedDate).toString(),
               updatedData: updatedData,
               updateTotalDaysAndHours: updateTotalDaysAndHours,
-              getSelectedDateData: _getSelectedDateData(),
               isLocked: isLocked,
             ),
             if(isPastContract) LockAndSaving(
@@ -459,7 +312,7 @@ class _HomePageState extends State<HomePage> {
               },
               isLocked : isLocked,
             ),
-            DisplayBottomDateAndHour(totalHours: totalHours ,totalDays : totalDays, leftHours: leftHours, leftDays: leftDays, leftMinutes: leftMinutes,),
+            DisplayBottomDateAndHour(totalHours: CustomDateUtils.totalHours ,totalDays : CustomDateUtils.totalDays, leftHours: CustomDateUtils.leftHours, leftDays: CustomDateUtils.leftDays, leftMinutes: CustomDateUtils.leftMinutes),
           ]
         ],
       ),

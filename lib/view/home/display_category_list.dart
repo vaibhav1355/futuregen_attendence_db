@@ -7,7 +7,6 @@ import 'journal.dart';
 
 class DisplayCategoryList extends StatefulWidget {
 
-  final Map<String, dynamic> getSelectedDateData;
   final List<Map<String, dynamic>> updatedData;
   final bool isPastContract;
   final String selectedDate;
@@ -15,7 +14,6 @@ class DisplayCategoryList extends StatefulWidget {
   final bool isLocked;
 
   DisplayCategoryList({
-    required this.getSelectedDateData,
     required this.updatedData,
     required this.isPastContract,
     required this.selectedDate,
@@ -29,6 +27,46 @@ class DisplayCategoryList extends StatefulWidget {
 
 
 class _DisplayCategoryListState extends State<DisplayCategoryList> {
+
+  Map<String, dynamic> _getSelectedDateData() {
+    String formattedDate = DateFormat('dd-MM-yyyy').format(DateFormat('dd-MM-yyyy').parse(widget.selectedDate));
+
+    var entry = widget.updatedData.firstWhere(
+          (range) {
+        DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
+        DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
+        DateTime currentDate = DateFormat('dd-MM-yyyy').parse(formattedDate);
+
+        return currentDate.isAfter(rangeStartDate.subtract(Duration(days: 1))) &&
+            currentDate.isBefore(rangeEndDate.add(Duration(days: 1)));
+      },
+      orElse: () {
+        widget.updatedData.add({
+          'startDate': formattedDate,
+          'endDate': formattedDate,
+          'entries': [],
+        });
+        return widget.updatedData.last;
+      },
+    );
+
+    return entry['entries'].firstWhere(
+          (entry) => entry['selectedDate'] == formattedDate,
+      orElse: () {
+        var newEntry = {
+          'selectedDate': formattedDate,
+          'isLocked': false,
+          'categorylist': [
+            {'category': 'Admin-General', 'time': '0:00', 'journals': ''},
+            {'category': 'Academic-General', 'time': '0:00', 'journals': ''},
+            {'category': 'Fundraising-General', 'time': '0:00', 'journals': ''},
+          ],
+        };
+        entry['entries'].add(newEntry);
+        return newEntry;
+      },
+    );
+  }
 
   List<Map<String, dynamic>> _categoryDetails = [];
 
@@ -193,7 +231,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
 
   void _showCategoryBottomSheet(BuildContext context) {
 
-    var selectedDateData = widget.getSelectedDateData;
+    var selectedDateData = _getSelectedDateData();
     DateTime formattedDate = DateFormat('dd-MM-yyyy').parse(widget.selectedDate);
 
     CategoryBottomSheet.showCategoryBottomSheet(
