@@ -65,7 +65,7 @@ class CategoryBottomSheet {
                       children: [
                         InkWell(
                           onTap: () => Navigator.pop(context),
-                          child: const Padding(
+                          child: Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
                               'Cancel',
@@ -97,6 +97,7 @@ class CategoryBottomSheet {
                                     hours: '00:00',
                                     isLocked: 'false',
                                     journal: '',
+                                    sync_status: 1,
                                   );
                                 }
                               }

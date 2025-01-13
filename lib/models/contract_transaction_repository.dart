@@ -12,6 +12,7 @@ class ContractTransactionRepository {
     String? journal,
     String? isLocked,
     String? hours,
+    int? sync_status,
   }) async {
     final dbClient = await _dbHelper.database;
 
@@ -31,6 +32,7 @@ class ContractTransactionRepository {
             if (journal != null) DatabaseHelper.journal: journal,
             if (isLocked != null) DatabaseHelper.islock : isLocked,
             if (hours != null) DatabaseHelper.hours: hours,
+            if (sync_status != null) DatabaseHelper.sync_status: sync_status,
             DatabaseHelper.datesubmitted: DateTime.now().toIso8601String(),
           },
           where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.category_id} = ?',
@@ -47,7 +49,7 @@ class ContractTransactionRepository {
           DatabaseHelper.hours: hours ?? '00:00',
           DatabaseHelper.finalSubmit: '',
           DatabaseHelper.contractId: 1,
-          DatabaseHelper.syncStatus: 0,
+          DatabaseHelper.sync_status: sync_status,
           DatabaseHelper.deviceId: 'YourDeviceID',
         });
       }
@@ -65,8 +67,10 @@ class ContractTransactionRepository {
           DatabaseHelper.category_id,
           DatabaseHelper.hours,
           DatabaseHelper.journal,
-          DatabaseHelper.islock ,
+          DatabaseHelper.islock,
+          DatabaseHelper.sync_status,
         ],
+
         where: '${DatabaseHelper.transaction_date} = ?',
         whereArgs: [transaction_date],
       );
@@ -75,8 +79,6 @@ class ContractTransactionRepository {
       return [];
     }
   }
-
-
 
 
   // for updating the lock status in db

@@ -30,7 +30,7 @@ class DatabaseHelper {
   static const islock  = 'islock';
   static const finalSubmit = 'finalsubmit';
   static const contractId = 'contract_id';
-  static const syncStatus = 'sync_status';
+  static const sync_status = 'sync_status';
   static const deviceId = 'deviceid';
 
   Future<Database> get database async {
@@ -93,13 +93,12 @@ class DatabaseHelper {
       $islock  TEXT,
       $finalSubmit TEXT, 
       $contractId INTEGER,
-      $syncStatus INTEGER, 
+      $sync_status INTEGER, 
       $deviceId TEXT
     )
   ''');
     print("ContractTransaction Table Created.");
   }
-
 
   Future<void> printContractTransactionTable() async {
     final dbClient = await database;

@@ -10,7 +10,6 @@ import '../../models/contract_transaction_repository.dart';
 import '../../models/db_helper.dart';
 import 'contract_navigation.dart';
 import 'date/ensure_date_exists.dart';
-import 'date/get_min_max_date.dart';
 import 'display_category_list.dart';
 import 'fetch_category_details_by_date.dart';
 import 'locking_and_saving.dart';
@@ -29,8 +28,8 @@ class _HomePageState extends State<HomePage> {
 
   final List<Map<String, dynamic>> updatedData = [
     {
-      "startDate": "20-12-2024",
-      "endDate": "23-12-2024",
+      "startDate": "27-12-2024",
+      "endDate": "30-12-2024",
       "totalDays": 0,
       "leftDays" : 0.0,
       "totalHours": 0,
@@ -42,8 +41,8 @@ class _HomePageState extends State<HomePage> {
       ],
     },
     {
-      "startDate": "29-12-2024",
-      "endDate": "15-01-2025",
+      "startDate": "08-01-2025",
+      "endDate": "20-01-2025",
       "totalDays": 0,
       "leftDays" : 0.0,
       "totalHours": 0,
@@ -72,15 +71,14 @@ class _HomePageState extends State<HomePage> {
     updateTotalDaysAndHours();
     _updateContractStatus();
     _fetchLockStatus();
-    ensureDataExists(GetMinMaxDates.minDate(updatedData)! , GetMinMaxDates.maxDate(updatedData)! , updatedData);
+    ensureDataExists(dateUtils.minDate(updatedData)! , dateUtils.maxDate(updatedData)! , updatedData);
   }
-
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: GetMinMaxDates.minDate(updatedData)!,
+      firstDate: dateUtils.minDate(updatedData)!,
       lastDate: currentDate,
     );
     if (picked != null && picked != selectedDate) {
@@ -180,11 +178,11 @@ class _HomePageState extends State<HomePage> {
           dateInRange = true;
 
           setState(() {
-            CustomDateUtils.totalDays = range['totalDays'];
-            CustomDateUtils.totalHours = range['totalHours'];
-            CustomDateUtils.leftHours = range['leftHours'];
-            CustomDateUtils.leftMinutes = range['leftMinutes'];
-            CustomDateUtils.leftDays = range['leftDays'];
+            dateUtils.totalDays = range['totalDays'];
+            dateUtils.totalHours = range['totalHours'];
+            dateUtils.leftHours = range['leftHours'];
+            dateUtils.leftMinutes = range['leftMinutes'];
+            dateUtils.leftDays = range['leftDays'];
           });
           break;
         }
@@ -192,11 +190,11 @@ class _HomePageState extends State<HomePage> {
 
       if (!dateInRange) {
         setState(() {
-          CustomDateUtils.totalDays = 0;
-          CustomDateUtils.totalHours = 0;
-          CustomDateUtils.leftHours = 0;
-          CustomDateUtils.leftMinutes = 0;
-          CustomDateUtils.leftDays = 0.0;
+          dateUtils.totalDays = 0;
+          dateUtils.totalHours = 0;
+          dateUtils.leftHours = 0;
+          dateUtils.leftMinutes = 0;
+          dateUtils.leftDays = 0.0;
         });
       }
     } catch (e, stackTrace) {
@@ -245,7 +243,7 @@ class _HomePageState extends State<HomePage> {
             selectedDate: selectedDate,
             onPrevious: () {
               setState(() {
-                if (selectedDate.isAfter(GetMinMaxDates.minDate(updatedData)!)) {
+                if (selectedDate.isAfter(dateUtils.minDate(updatedData)!)) {
                   selectedDate = selectedDate.subtract(Duration(days: 1));
                     updateTotalDaysAndHours();
                     _updateContractStatus();
@@ -312,7 +310,7 @@ class _HomePageState extends State<HomePage> {
               },
               isLocked : isLocked,
             ),
-            DisplayBottomDateAndHour(totalHours: CustomDateUtils.totalHours ,totalDays : CustomDateUtils.totalDays, leftHours: CustomDateUtils.leftHours, leftDays: CustomDateUtils.leftDays, leftMinutes: CustomDateUtils.leftMinutes),
+            DisplayBottomDateAndHour(totalHours: dateUtils.totalHours ,totalDays : dateUtils.totalDays, leftHours: dateUtils.leftHours, leftDays: dateUtils.leftDays, leftMinutes: dateUtils.leftMinutes),
           ]
         ],
       ),

@@ -28,6 +28,8 @@ class DisplayCategoryList extends StatefulWidget {
 
 class _DisplayCategoryListState extends State<DisplayCategoryList> {
 
+  List<Map<String, dynamic>> _categoryDetails = [];
+
   Map<String, dynamic> _getSelectedDateData() {
     String formattedDate = DateFormat('dd-MM-yyyy').format(DateFormat('dd-MM-yyyy').parse(widget.selectedDate));
 
@@ -67,8 +69,6 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
       },
     );
   }
-
-  List<Map<String, dynamic>> _categoryDetails = [];
 
   @override
   void initState() {
@@ -130,6 +130,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
           transaction_date: formattedDate,
           hours: formattedTime,
           category_id: CategoryBottomSheet.categoryWithIds[category] ?? 0,
+          sync_status: 1,
         );
 
         if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
@@ -173,6 +174,7 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
               transaction_date: formattedDate,
               journal: updatedText,
               category_id: CategoryBottomSheet.categoryWithIds[category] ?? 0,
+              sync_status: 1,
             );
 
             //bool entryUpdated = false;
@@ -247,7 +249,6 @@ class _DisplayCategoryListState extends State<DisplayCategoryList> {
   }
 
   @override
-
   Widget build(BuildContext context) {
     final isLocked = widget.isLocked;
     final showAddItemButton = widget.isPastContract && !isLocked;
