@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'db_helper.dart';
@@ -22,6 +26,8 @@ class ContractTransactionRepository {
         where: '${DatabaseHelper.transaction_date} = ? AND ${DatabaseHelper.category_id} = ?',
         whereArgs: [transaction_date, category_id],
       );
+
+      final deviceId = await _getDeviceId();  // Await the device ID before using it.
 
       if (existingEntries.isNotEmpty) {
         final existingEntry = existingEntries.first;
@@ -50,13 +56,14 @@ class ContractTransactionRepository {
           DatabaseHelper.finalSubmit: '',
           DatabaseHelper.contractId: 1,
           DatabaseHelper.sync_status: sync_status,
-          DatabaseHelper.deviceId: 'YourDeviceID',
+          DatabaseHelper.deviceId: deviceId,  // Pass the awaited device ID here
         });
       }
     } catch (e) {
       print('Error in addCategoryTransaction: $e');
     }
   }
+
 
   Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transaction_date) async {
     final dbClient = await _dbHelper.database;
@@ -97,4 +104,41 @@ class ContractTransactionRepository {
       print('Error in lockTransactionsByDate: $e');
     }
   }
+
+  // fetchEntriesWithSyncStatus
+  Future<String> fetchEntriesWithSyncStatus() async {
+    final dbClient = await _dbHelper.database;
+
+    try {
+      final List<Map<String, dynamic>> entries = await dbClient.query(
+        DatabaseHelper.contractTransaction,
+        where: '${DatabaseHelper.sync_status} = ?',
+        whereArgs: [1],
+      );
+
+      print('Entries with sync_status = 1:');
+      for (final entry in entries) {
+        print(entry);
+      }
+      return jsonEncode(entries);
+    } catch (e) {
+      print('Error fetching entries with sync_status = 1: $e');
+      return jsonEncode([]);
+    }
+  }
+
+  Future<String> _getDeviceId() async {
+    final deviceInfo = DeviceInfoPlugin();
+
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.id;
+    } else if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      return iosInfo.identifierForVendor ?? 'UnknownDeviceID';
+    } else {
+      return 'UnknownDeviceID';
+    }
+  }
+
 }

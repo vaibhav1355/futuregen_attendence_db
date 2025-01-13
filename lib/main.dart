@@ -8,7 +8,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   DatabaseHelper db = new DatabaseHelper();
   await db.initDatabase();
-
+  //await db.deleteAllData();
   await printTable();
   runApp(MyApp());
 }

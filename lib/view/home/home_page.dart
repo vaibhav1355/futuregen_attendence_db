@@ -217,6 +217,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+
   @override
 
   Widget build(BuildContext context) {
@@ -233,6 +234,28 @@ class _HomePageState extends State<HomePage> {
           'Home',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
         ),
+        actions: [
+          TextButton.icon(
+            onPressed: () async {
+              final repository = ContractTransactionRepository();
+              final jsonResponse = await repository.fetchEntriesWithSyncStatus();
+
+              print('Fetched entries: $jsonResponse');
+            },
+            icon: Icon(Icons.sync, color: Colors.white),
+            label: Text(
+              'Sync Data',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              backgroundColor: Colors.black,
+            ),
+          ),
+        ],
       ),
       drawer: Drawer(
         child: AppDrawer(),

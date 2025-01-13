@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -31,7 +34,7 @@ class DatabaseHelper {
   static const finalSubmit = 'finalsubmit';
   static const contractId = 'contract_id';
   static const sync_status = 'sync_status';
-  static const deviceId = 'deviceid';
+  static const deviceId = 'deviceId';
 
   Future<Database> get database async {
     db ??= await initDatabase();
