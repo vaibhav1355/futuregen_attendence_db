@@ -166,6 +166,4 @@ class CategoryBottomSheet {
       },
     );
   }
-
-
 }

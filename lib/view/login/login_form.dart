@@ -1,9 +1,14 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:futurgen_attendance/view/home/home_page.dart';
+import 'package:futurgen_attendance/view/login/login_screen.dart';
 
 import '../../Constants/constants.dart';
 import '../widgets/custom_text_form_field.dart';
 import 'forgot_password.dart';
+import 'login_credentials.dart';
 
 class LoginForm extends StatelessWidget {
 
@@ -100,30 +105,46 @@ class LoginForm extends StatelessWidget {
           ),
           SizedBoxHeight25,
           MaterialButton(
-              onPressed: (){
-                if (_formKey.currentState?.validate() ?? false) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomePage(),
-                    ),
-                  );
-                }
-              },
-              minWidth: MediaQuery.sizeOf(context).width*0.75,
-              color: Color(0xffeacc20),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Text('Sign In',
-                  style: TextStyle(
-                    fontSize: 16,
-                  ),
+            onPressed: () {
+              if (_formKey.currentState?.validate() ?? false) {
+
+                // Set email and password
+                LoginCredentials.email = usernameController.text.trim();
+                LoginCredentials.password = passwordController.text.trim();
+                LoginCredentials.type = 'web';
+
+                // Update password and generate hash
+                LoginCredentials.updatePassword(LoginCredentials.password);
+
+                // Now passwordHash will be updated in LoginCredentials
+                print('Email: ${LoginCredentials.email}');
+                print('Password Hash: ${LoginCredentials.passwordHash}');
+                print('type: ${LoginCredentials.type}');
+
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => HomePage(),
+                //   ),
+                // );
+              }
+            },
+            minWidth: MediaQuery.sizeOf(context).width * 0.75,
+            color: Color(0xffeacc20),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Text(
+                'Sign In',
+                style: TextStyle(
+                  fontSize: 16,
                 ),
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(32.0),
-              ),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(32.0),
+            ),
           ),
+
           SizedBoxHeight10,
         ],
       ),

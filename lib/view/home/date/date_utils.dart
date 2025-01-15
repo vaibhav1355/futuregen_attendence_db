@@ -3,11 +3,18 @@ import 'package:intl/intl.dart';
 
 class dateUtils {
 
+  static  DateTime currentDate = DateTime.now();
+  static late DateTime selectedDate;
+
   static int totalDays = 0;
   static int totalHours = 0;
   static int leftHours = 0;
   static int leftMinutes = 0;
   static double leftDays = 0.0;
+
+  static bool contractExist = false ;
+  static bool isPastContract = false;
+
 
   static DateTime minDate(List<Map<String, dynamic>> updatedData) {
     return updatedData

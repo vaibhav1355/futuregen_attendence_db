@@ -25,3 +25,15 @@ const SizedBoxHeight65 = SizedBox(height: 65);
 const SizedBoxHeight70 = SizedBox(height: 70);
 const SizedBoxHeight75 = SizedBox(height: 75);
 const SizedBoxHeight80 = SizedBox(height: 80);
+
+
+/*
+
+String email = usernameController.text.trim();
+                  String password = passwordController.text.trim();
+
+                  var passwordHash = md5.convert(utf8.encode(password)).toString();
+
+                  print('email : $email');
+                  print('password: $passwordHash');
+ */

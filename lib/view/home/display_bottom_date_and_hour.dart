@@ -23,12 +23,12 @@ class DisplayBottomDateAndHour extends StatelessWidget {
         children: [
           _buildInfoTile(
             context,
-            color: const Color(0xff39ba53),
+            color: Color(0xff39ba53),
             text: 'D-$leftDays',
           ),
           _buildInfoTile(
             context,
-            color: const Color(0xffde3232),
+            color: Color(0xffde3232),
             text: _formatHoursAndMinutes(),
           ),
         ],
@@ -36,32 +36,29 @@ class DisplayBottomDateAndHour extends StatelessWidget {
     );
   }
 
-  // Function to format hours and minutes
   String _formatHoursAndMinutes() {
     return leftMinutes < 10 ? 'H- $leftHours.0$leftMinutes' : 'H- $leftHours.$leftMinutes';
   }
 
-  // Reusable widget for displaying a tile
   Widget _buildInfoTile(BuildContext context, {required Color color, required String text}) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.5,
       height: 60,
       decoration: BoxDecoration(color: color),
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12),
       child: Center(
         child: Text(
           text,
-          style: const TextStyle(fontSize: 20, color: Colors.white),
+          style: TextStyle(fontSize: 20, color: Colors.white),
         ),
       ),
     );
   }
 
-  // Function to show bottom sheet
   void _showDetailsBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
@@ -79,7 +76,6 @@ class DisplayBottomDateAndHour extends StatelessWidget {
     );
   }
 
-  // Reusable widget for dismissable header
   Widget _buildDismissableHeader(BuildContext context) {
     return InkWell(
       onTap: () => Navigator.pop(context),
@@ -87,12 +83,12 @@ class DisplayBottomDateAndHour extends StatelessWidget {
         children: [
           _buildInfoTile(
             context,
-            color: const Color(0xff39ba53),
+            color: Color(0xff39ba53),
             text: 'D-$leftDays',
           ),
           _buildInfoTile(
             context,
-            color: const Color(0xffde3232),
+            color: Color(0xffde3232),
             text: _formatHoursAndMinutes(),
           ),
         ],
@@ -100,21 +96,20 @@ class DisplayBottomDateAndHour extends StatelessWidget {
     );
   }
 
-  // Reusable widget for details content
   Widget _buildDetailsContent() {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildDetailRow('Total Days:', '$totalDays'),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           _buildDetailRow('Left Days:', '$leftDays'),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildDetailRow('Total Hours:', '$totalHours'),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           _buildDetailRow('Left Hours:', _formatHoursAndMinutes()),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
         ],
       ),
     );
@@ -126,11 +121,11 @@ class DisplayBottomDateAndHour extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16),
         ),
         Text(
           value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ],
     );

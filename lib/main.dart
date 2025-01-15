@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:futurgen_attendance/view/home/home_page.dart';
+import 'package:futurgen_attendance/view/login/login_screen.dart';
 
 import 'models/db_helper.dart';
 
@@ -14,7 +15,6 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
 

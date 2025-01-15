@@ -10,9 +10,9 @@ Future<List<Map<String, dynamic>>> fetchCategoryDetailsByDate(String transaction
     List<Map<String, dynamic>> result = await dbClient.query(
       DatabaseHelper.contractTransaction,
       columns: [
-        DatabaseHelper.category_id,
-        DatabaseHelper.hours,
-        DatabaseHelper.journal,
+        DatabaseHelper.category_id ,
+        DatabaseHelper.hours ,
+        DatabaseHelper.journal ,
         DatabaseHelper.islock ,
       ],
       where: '${DatabaseHelper.transaction_date} = ?',

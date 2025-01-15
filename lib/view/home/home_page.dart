@@ -16,7 +16,6 @@ import 'locking_and_saving.dart';
 import 'no_contract_page.dart';
 
 class HomePage extends StatefulWidget {
-
   const HomePage({super.key});
 
   @override
@@ -57,17 +56,15 @@ class _HomePageState extends State<HomePage> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final DateTime currentDate = DateTime.now();
-  late DateTime selectedDate;
+  // final DateTime currentDate = DateTime.now();
+  // late DateTime selectedDate;
 
-  bool contractExist = false ;
-  bool isPastContract = false;
   bool isLocked = false;
 
   @override
   void initState() {
     super.initState();
-    selectedDate = DateTime(currentDate.year, currentDate.month, currentDate.day);
+    dateUtils.selectedDate = DateTime(dateUtils.currentDate.year, dateUtils.currentDate.month, dateUtils.currentDate.day);
     updateTotalDaysAndHours();
     _updateContractStatus();
     _fetchLockStatus();
@@ -77,13 +74,13 @@ class _HomePageState extends State<HomePage> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
+      initialDate: dateUtils.selectedDate,
       firstDate: dateUtils.minDate(updatedData)!,
-      lastDate: currentDate,
+      lastDate: dateUtils.currentDate,
     );
-    if (picked != null && picked != selectedDate) {
+    if (picked != null && picked != dateUtils.selectedDate) {
       setState(() {
-        selectedDate = picked;
+        dateUtils.selectedDate = picked;
         _updateContractStatus();
         updateTotalDaysAndHours();
         _fetchLockStatus();
@@ -101,23 +98,23 @@ class _HomePageState extends State<HomePage> {
       DateTime rangeStartDate = dateFormat.parse(range['startDate']);
       DateTime rangeEndDate = dateFormat.parse(range['endDate']);
 
-      if (selectedDate.isAfter(rangeEndDate)) {
+      if (dateUtils.selectedDate.isAfter(rangeEndDate)) {
         range['pastContract'] = true;
         isPast = true;
       } else {
         range['pastContract'] = false;
       }
 
-      if ((selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate)) ||
-          selectedDate.isAtSameMomentAs(rangeStartDate) ||
-          selectedDate.isAtSameMomentAs(rangeEndDate)) {
+      if ((dateUtils.selectedDate.isAfter(rangeStartDate) && dateUtils.selectedDate.isBefore(rangeEndDate)) ||
+          dateUtils.selectedDate.isAtSameMomentAs(rangeStartDate) ||
+          dateUtils.selectedDate.isAtSameMomentAs(rangeEndDate)) {
         exists = true;
       }
     }
 
     setState(() {
-      contractExist = exists;
-      isPastContract = isPast;
+      dateUtils.contractExist = exists;
+      dateUtils.isPastContract = isPast;
     });
   }
 
@@ -149,7 +146,6 @@ class _HomePageState extends State<HomePage> {
             }
           }
         }
-
         int totalUsedHours = totalUsedMinutes ~/ 60;
         totalUsedMinutes %= 60;
 
@@ -172,9 +168,9 @@ class _HomePageState extends State<HomePage> {
         DateTime rangeStartDate = DateFormat('dd-MM-yyyy').parse(range['startDate']);
         DateTime rangeEndDate = DateFormat('dd-MM-yyyy').parse(range['endDate']);
 
-        if (selectedDate.isAtSameMomentAs(rangeStartDate) ||
-            selectedDate.isAtSameMomentAs(rangeEndDate) ||
-            (selectedDate.isAfter(rangeStartDate) && selectedDate.isBefore(rangeEndDate))) {
+        if (dateUtils.selectedDate.isAtSameMomentAs(rangeStartDate) ||
+            dateUtils.selectedDate.isAtSameMomentAs(rangeEndDate) ||
+            (dateUtils.selectedDate.isAfter(rangeStartDate) && dateUtils.selectedDate.isBefore(rangeEndDate))) {
           dateInRange = true;
 
           setState(() {
@@ -204,22 +200,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchLockStatus() async {
-    String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+    String transactionDate = DateFormat('dd-MM-yyyy').format(dateUtils.selectedDate);
 
     try {
       final result = await fetchCategoryDetailsByDate(transactionDate);
       bool locked = result.any((entry) => entry['islock'] == 'true');
       setState(() {
-        isLocked = locked;
+       isLocked = locked;
       });
     } catch (e) {
       print('Error fetching lock status: $e');
     }
   }
 
-
   @override
-
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
@@ -239,7 +233,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: () async {
               final repository = ContractTransactionRepository();
               final jsonResponse = await repository.fetchEntriesWithSyncStatus();
-
               print('Fetched entries: $jsonResponse');
             },
             icon: Icon(Icons.sync, color: Colors.white),
@@ -263,11 +256,11 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           ContractNavigation(
-            selectedDate: selectedDate,
+            selectedDate: dateUtils.selectedDate,
             onPrevious: () {
               setState(() {
-                if (selectedDate.isAfter(dateUtils.minDate(updatedData)!)) {
-                  selectedDate = selectedDate.subtract(Duration(days: 1));
+                if (dateUtils.selectedDate.isAfter(dateUtils.minDate(updatedData)!)) {
+                  dateUtils.selectedDate = dateUtils.selectedDate.subtract(Duration(days: 1));
                     updateTotalDaysAndHours();
                     _updateContractStatus();
                     _fetchLockStatus();
@@ -276,9 +269,9 @@ class _HomePageState extends State<HomePage> {
             },
             onNext: () {
               setState(() {
-                if (selectedDate.add(Duration(days: 1)).isBefore(
-                    DateTime(currentDate.year, currentDate.month, currentDate.day + 1))) {
-                  selectedDate = selectedDate.add(Duration(days: 1));
+                if (dateUtils.selectedDate.add(Duration(days: 1)).isBefore(
+                    DateTime(dateUtils.currentDate.year, dateUtils.currentDate.month, dateUtils.currentDate.day + 1))) {
+                  dateUtils.selectedDate = dateUtils.selectedDate.add(Duration(days: 1));
                   _updateContractStatus();
                   updateTotalDaysAndHours();
                   _fetchLockStatus();
@@ -289,41 +282,40 @@ class _HomePageState extends State<HomePage> {
               _selectDate(context);
             },
           ),
-          if (!contractExist) NoContractPage(),
-          if(contractExist) ...[
+          if (!dateUtils.contractExist) NoContractPage(),
+          if(dateUtils.contractExist) ...[
             SizedBoxHeight10,
             DisplayCategoryList(
-              isPastContract: isPastContract,
-              selectedDate: DateFormat('dd-MM-yyyy').format(selectedDate).toString(),
+              isPastContract: dateUtils.isPastContract,
+              selectedDate: DateFormat('dd-MM-yyyy').format(dateUtils.selectedDate).toString(),
               updatedData: updatedData,
               updateTotalDaysAndHours: updateTotalDaysAndHours,
               isLocked: isLocked,
             ),
-            if(isPastContract) LockAndSaving(
+            if(dateUtils.isPastContract) LockAndSaving(
               onSave: () {
-                String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                String formattedDate = DateFormat('dd-MM-yyyy').format(dateUtils.selectedDate);
                 print("Data saved for: $formattedDate");
               },
               onLock: () {
                 setState(() {
                   isLocked = true;
-                  final String transactionDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                  final String transactionDate = DateFormat('dd-MM-yyyy').format(dateUtils.selectedDate);
 
                   for (var dateRange in updatedData) {
                     final DateTime startDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['startDate']);
                     final DateTime endDateTime = DateFormat('dd-MM-yyyy').parse(dateRange['endDate']);
 
-                    if (startDateTime.isBefore(selectedDate) || startDateTime.isAtSameMomentAs(selectedDate)) {
-                      if (endDateTime.isAfter(selectedDate) || endDateTime.isAtSameMomentAs(selectedDate)) {
+                    if (startDateTime.isBefore(dateUtils.selectedDate) || startDateTime.isAtSameMomentAs(dateUtils.selectedDate)) {
+                      if (endDateTime.isAfter(dateUtils.selectedDate) || endDateTime.isAtSameMomentAs(dateUtils.selectedDate)) {
                         for (var entry in dateRange['entries']) {
-                          if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(selectedDate)) {
+                          if (entry['selectedDate'] == DateFormat('dd-MM-yyyy').format(dateUtils.selectedDate)) {
                             entry['isLocked'] = true;
                           }
                         }
                       }
                     }
                   }
-
                   final repository = ContractTransactionRepository();
                   repository.lockTransactionsByDate(
                     transaction_date: transactionDate,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:futurgen_attendance/view/login/login_credentials.dart';
+import 'package:futurgen_attendance/view/login/login_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../home/home_page.dart';
@@ -24,6 +26,17 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
         print("Access Token: ${googleAuth.accessToken}");
         print("User email: ${googleUser.email}");
         print("User display name: ${googleUser.displayName}");
+
+        LoginCredentials.email = googleUser.email;
+        LoginCredentials.password = '';
+        LoginCredentials.passwordHash ='';
+        LoginCredentials.type='gmail';
+
+        print('email: $LoginCredentials.email');
+        print('password: $LoginCredentials.password');
+        print('type: $LoginCredentials.type');
+
+
         Navigator.push(
           context,
           MaterialPageRoute(
